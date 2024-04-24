@@ -1,0 +1,4 @@
+
+
+LocalFeatureDetector: "SIFT"
+LocalFeatureDescriber: "SIFT"
