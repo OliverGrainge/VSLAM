@@ -24,7 +24,7 @@ class KLTTracker(ABCFeatureTracker):
             camera1.left_image, camera1.right_image, left_pts, None, **self.lk_params
         )
 
-        height, width = camera1.left_image.shape[:2]
+        height, width = camera1.right_image.shape[:2]
         mask = (
             (st.flatten() == 1)
             & (right_pts[:, 0] >= 0)
@@ -64,6 +64,7 @@ class KLTTracker(ABCFeatureTracker):
 
     def track(self, camera1, camera2=None) -> Tuple:
         if camera2 is not None:
-            return self.track_left_to_right(camera1)
-        else:
             return self.track_consecutive(camera1, camera2)
+        else:
+            return self.track_left_to_right(camera1)
+            

@@ -2,8 +2,8 @@ from typing import List
 
 import cv2
 import numpy as np
-from ..utils import unhomogenize
 
+from ..utils import unhomogenize
 from .base import ABCCamera
 
 

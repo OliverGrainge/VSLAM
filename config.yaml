@@ -2,4 +2,4 @@
 DatasetsDirectory: "/Users/olivergrainge/Documents/github/Datasets"
 LocalFeatureDetector: "SIFT" # Either SIFT or HARRIS
 LocalFeatureDescriber: "SIFT"
-LocalFeatureTracker: "Matcher" # Either KLT or BruteForce
+LocalFeatureTracker: "KLT" # Either KLT or BruteForce

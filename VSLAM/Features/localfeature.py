@@ -43,9 +43,9 @@ class LocalFeatures:
         return camera
 
     def detect(self, camera):
-        camera.left_kp = self.detector.detect(camera.left_image)
+        camera.left_kp = np.array(self.detector.detect(camera.left_image))
         camera.left_kpoints2d = cv2.KeyPoint_convert(camera.left_kp)
-        camera.right_kp = self.detector.detect(camera.right_image)
+        camera.right_kp = np.array(self.detector.detect(camera.right_image))
         camera.right_kpoints2d = cv2.KeyPoint_convert(camera.right_kp)
         return camera
 
