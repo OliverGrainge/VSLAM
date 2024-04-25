@@ -28,5 +28,10 @@ def get_config():
 
 
 def pts2kp(pts: np.ndarray, size=1):
-    kp = tuple([cv2.KeyPoint(x=float(pt[0]), y=float(pt[1]), size=size) for pt in pts.squeeze()])
+    kp = tuple(
+        [
+            cv2.KeyPoint(x=float(pt[0]), y=float(pt[1]), size=size)
+            for pt in pts.squeeze()
+        ]
+    )
     return kp

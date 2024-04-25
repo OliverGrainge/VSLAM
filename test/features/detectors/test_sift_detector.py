@@ -1,7 +1,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+)
 
 from typing import List, Tuple
 
@@ -23,18 +25,20 @@ def get_camera():
     inputs = ds.load_frame(0)
     params = ds.load_parameters()
     camera = StereoCamera(**inputs, **params)
-    return camera 
+    return camera
 
 
 def test_instantiate():
     det = SIFT()
-    assert det is not None 
+    assert det is not None
+
 
 def test_detect():
     det = SIFT()
     camera = get_camera()
     kp = det.detect(camera.left_image)
-    assert kp is not None 
+    assert kp is not None
+
 
 def test_outputs_dtype():
     det = SIFT()

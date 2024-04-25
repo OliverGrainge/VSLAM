@@ -1,7 +1,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+)
 
 from typing import List, Tuple
 
@@ -12,7 +14,6 @@ from Datasets import Kitti
 from VSLAM.Camera import StereoCamera
 from VSLAM.Features import LocalFeatures
 from VSLAM.FeatureTrackers.Trackers import KLTTracker
-
 
 
 def get_cameras():
@@ -28,7 +29,7 @@ def get_cameras():
 
 def test_instantiation():
     obj = KLTTracker()
-    assert obj is not None 
+    assert obj is not None
 
 
 def test_left_right_track_type():
@@ -53,7 +54,6 @@ def test_left_right_track_size():
     assert len(cam1.left_kp) == len(cam1.left_kpoints2d)
 
 
-
 def test_consecutive_type():
     cam1, cam2 = get_cameras()
     lf = LocalFeatures()
@@ -76,6 +76,3 @@ def test_consecutive_size():
     assert len(cam1.left_kp) == len(cam2.left_kpoints2d)
     assert len(cam1.left_kpoints2d) == len(cam2.left_kpoints2d)
     assert len(cam1.left_kp) == len(cam2.left_kpoints2d)
-
-
-

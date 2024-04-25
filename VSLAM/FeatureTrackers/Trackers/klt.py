@@ -67,4 +67,3 @@ class KLTTracker(ABCFeatureTracker):
             return self.track_consecutive(camera1, camera2)
         else:
             return self.track_left_to_right(camera1)
-            

@@ -40,5 +40,21 @@ class StereoCamera(ABCCamera):
 
     def project(self, points: np.ndarray):
         rvec, tvec = unhomogenize(self.x)
-        projected_points, _ = cv2.projectPoints(points.T, rvec, tvec, self.k, self.dist)
-        return projected_points
+        projected_points, _ = cv2.projectPoints(points.T, rvec, tvec, self.kl, self.dist)
+        return projected_points.squeeze()
+
+    def triangulate(self):
+        self.desc3d = self.left_desc2d
+        points_4d = cv2.triangulatePoints(
+            self.pl, self.pr, self.left_kpoints2d.T, self.right_kpoints2d.T
+        )
+
+        if np.allclose(self.x, np.eye(4), atol=1e-6):
+            points_3d = points_4d[:3] / points_4d[3]
+            self.kpoints3d = points_3d.T
+        else:
+            # if camera is not at the origin tranlate the points 
+            points_4d = self.x @ points_4d
+            points_4d /= points_4d[3, :]
+            self.kpoints3d = points_4d[:3, :].T
+        return self.kpoints3d

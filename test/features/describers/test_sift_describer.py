@@ -1,7 +1,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+)
 
 from typing import List, Tuple
 
@@ -24,12 +26,13 @@ def get_camera():
     inputs = ds.load_frame(0)
     params = ds.load_parameters()
     camera = StereoCamera(**inputs, **params)
-    return camera 
+    return camera
 
 
 def test_instantiate():
     des = Describers.SIFT()
-    assert des is not None 
+    assert des is not None
+
 
 def test_desc():
     det = Detectors.SIFT()
@@ -37,7 +40,8 @@ def test_desc():
     camera = get_camera()
     kp = det.detect(camera.left_image)
     desc = des.compute(camera.left_image, kp)
-    assert desc is not None 
+    assert desc is not None
+
 
 def test_desc():
     det = Detectors.SIFT()
@@ -46,6 +50,7 @@ def test_desc():
     kp = det.detect(camera.left_image)
     desc = des.compute(camera.left_image, kp)
     assert isinstance(desc, np.ndarray)
+
 
 def test_desc():
     det = Detectors.SIFT()
