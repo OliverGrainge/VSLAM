@@ -1,40 +1,55 @@
+from typing import List, Tuple, Union
+
 import cv2
-import VSLAM.Features.Local.Detectors as Detectors
-import VSLAM.Features.Local.Describers as Describers
-from ..utils import get_config
 import numpy as np
-from typing import Tuple, Union, List
+
+import VSLAM.Features.Local.Describers as Describers
+import VSLAM.Features.Local.Detectors as Detectors
+
+from ..utils import get_config
 
 config = get_config()
 
-def get_detector(): 
+
+def get_detector():
     if config["LocalFeatureDetector"] == "SIFT":
         return Detectors.SIFT()
-    else: 
+    elif config["LocalFeatureDetector"] == "HARRIS":
+        return Detectors.HARRIS()
+    else:
         raise NotImplementedError()
 
 
-def get_describer(): 
+def get_describer():
     if config["LocalFeatureDescriber"] == "SIFT":
         return Describers.SIFT()
-    else: 
+    else:
         raise NotImplementedError()
-
 
 
 class LocalFeatures:
     def __init__(self):
         self.detector = get_detector()
         self.describer = get_describer()
+        self.type = f"detector {config['LocalFeatureDetector']} describer {config['LocalFeatureDescriber']}"
 
-    def compute(self, image: np.ndarray, keypoints: Union[np.ndarray, List]) -> np.array:
-        return self.describer.compute(image, keypoints)
+    def compute(self, camera):
+        camera.left_desc2d = self.describer.compute(camera.left_image, camera.left_kp)
 
-    def detect(self, image: np.ndarray) -> List:
-        return self.detector.detect(image)
+        camera.right_desc2d = self.describer.compute(
+            camera.right_image, camera.right_kp
+        )
 
-    def detectAndCompute(self, image: np.ndarray) -> Tuple[List, np.ndarray]:
-        keypoints = self.detect(image)
-        desc = self.compute(image, keypoints)
-        return keypoints, desc
+        return camera
 
+    def detect(self, camera):
+        camera.left_kp = self.detector.detect(camera.left_image)
+        camera.left_kpoints2d = cv2.KeyPoint_convert(camera.left_kp)
+        camera.right_kp = self.detector.detect(camera.right_image)
+        camera.right_kpoints2d = cv2.KeyPoint_convert(camera.right_kp)
+        return camera
+
+    def detectAndCompute(self, camera):
+        camera = self.detect(camera)
+        camera = self.compute(camera)
+        return camera

@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
+
 import numpy as np
 
 
 class ABCLocalFeature(ABC):
-
-    @abstractmethod 
+    @abstractmethod
     def detect(image: np.ndarray) -> List:
-        pass 
+        pass
 
     @abstractmethod
     def compute(image: np.ndarray, keypoints: Union[np.ndarray, List]) -> np.array:
-        pass 
+        pass
 
     @abstractmethod
     def detectAndCompute(image: np.ndarray) -> Tuple[List, np.ndarray]:

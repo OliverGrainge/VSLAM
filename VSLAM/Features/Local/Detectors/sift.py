@@ -1,10 +1,13 @@
-from .base import ABCDetector
+from typing import List
+
 import cv2
-from typing import List 
 import numpy as np
 
+from .base import ABCDetector
+
+
 class SIFT(ABCDetector):
-    def __init__(self): 
+    def __init__(self):
         self.sift = cv2.SIFT_create()
 
     def detect(self, image: np.ndarray) -> List:

@@ -1,2 +1,1 @@
-from .bruteforcematcher import BruteForceTracker
-from .klt import KLTTracker
+from .tracker import FeatureTracker

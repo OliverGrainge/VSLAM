@@ -1,23 +1,28 @@
-import sys 
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+import sys
 
-import pytest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from typing import Tuple
+
 import numpy as np
+import pytest
+
 from VSLAM.Features import LocalFeatures
 from VSLAM.FeatureTrackers import BruteForceTracker, KLTTracker
 from VSLAM.utils import get_config
-from typing import Tuple
 
 
 # Utility function for generating a synthetic test image
 def generate_test_image():
     return np.random.randint(0, 256, (480, 640), dtype=np.uint8)
 
+
 # Test if the detector and describer are correctly instantiated
 def test_matcher():
     mat = BruteForceTracker()
-    assert mat is not None 
+    assert mat is not None
+
 
 def test_matching():
     lf = LocalFeatures()
@@ -45,7 +50,3 @@ def test_matching():
     assert isinstance(kp2, Tuple)
     assert isinstance(des1, np.ndarray)
     assert des2 is None
-
-
-
-

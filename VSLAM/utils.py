@@ -1,7 +1,9 @@
-import numpy as np
-import cv2
 from typing import Tuple
+
+import cv2
+import numpy as np
 import yaml
+
 
 def homogenize(rvec: np.ndarray, tvec: np.ndarray) -> np.ndarray:
     transformation = np.eye(4)
@@ -18,6 +20,7 @@ def unhomogenize(T: np.ndarray) -> Tuple[np.ndarray]:
     rvec, _ = cv2.Rodrigues(rot)
     tvec = T[:3, 3]
     return rvec.flatten(), tvec
+
 
 def get_config():
     with open("config.yaml", "r") as file:
