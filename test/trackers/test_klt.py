@@ -26,6 +26,23 @@ def get_cameras():
     camera2 = StereoCamera(**inputs2, **params)
     return camera1, camera2
 
+def get_cameras_consecutive():
+    root = os.path.join(os.getcwd(), "/test/data/")[1:]
+    ds = Kitti(root=root)
+    inputs1 = ds.load_frame(0)
+    inputs2 = ds.load_frame(1)
+    params = ds.load_parameters()
+    cam1= StereoCamera(**inputs1, **params)
+    cam2 = StereoCamera(**inputs2, **params)
+    tracker = KLTTracker()
+    lf = LocalFeatures()
+    cam1 = lf.detectAndCompute(cam1)
+    cam2 = lf.detectAndCompute(cam2)
+    cam1 = tracker.track(cam1)
+    cam1.triangulate()
+    return cam1, cam2
+
+
 
 def test_instantiation():
     obj = KLTTracker()
@@ -53,10 +70,7 @@ def test_left_right_track_size():
 
 
 def test_consecutive_type():
-    cam1, cam2 = get_cameras()
-    lf = LocalFeatures()
-    cam1 = lf.detectAndCompute(cam1)
-    cam2 = lf.detectAndCompute(cam2)
+    cam1, cam2 = get_cameras_consecutive()
     tracker = KLTTracker()
     cam1, cam2 = tracker.track(cam1, cam2)
     assert isinstance(cam1.left_kp, np.ndarray)
@@ -65,10 +79,7 @@ def test_consecutive_type():
 
 
 def test_consecutive_size():
-    cam1, cam2 = get_cameras()
-    lf = LocalFeatures()
-    cam1 = lf.detectAndCompute(cam1)
-    cam2 = lf.detectAndCompute(cam2)
+    cam1, cam2 = get_cameras_consecutive()
     tracker = KLTTracker()
     cam1, cam2 = tracker.track(cam1, cam2)
     assert len(cam1.left_kpoints2d) == len(cam2.left_kpoints2d)

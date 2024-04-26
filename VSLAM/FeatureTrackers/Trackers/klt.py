@@ -29,7 +29,10 @@ class KLTTracker(ABCFeatureTracker):
             & (right_pts[:, 0] < width)
             & (right_pts[:, 1] >= 0)
             & (right_pts[:, 1] < height)
+            & (np.abs(left_pts[:, 1] - right_pts[:, 1]) < 2.0) # limit movement in y direction
+            & (np.abs(left_pts[:, 0] - right_pts[:, 0]) < 40) # limit movement in x direction
         )
+
 
 
         camera1.left_kp = camera1.left_kp[mask]
@@ -37,7 +40,7 @@ class KLTTracker(ABCFeatureTracker):
         camera1.left_desc2d = camera1.left_desc2d[mask]
 
         camera1.right_kpoints2d = right_pts[mask]
-        camera1.right_kp = None
+        camera1.right_kp = pts2kp(camera1.right_kpoints2d)
         camera1.right_desc2d = None
         return camera1
 
@@ -49,19 +52,24 @@ class KLTTracker(ABCFeatureTracker):
 
         height, width = camera1.left_image.shape[:2]
         mask = (
-            (st.flatten() == 1)
-            & (cur_pts[:, 0] >= 0)
-            & (cur_pts[:, 0] < width)
-            & (cur_pts[:, 1] >= 0)
-            & (cur_pts[:, 1] < height)
+            (st.flatten() == 1) # those which klt assumes has good photometric error
+            & (cur_pts[:, 0] >= 0) # new points tracked out the left of the image
+            & (cur_pts[:, 0] < width) # new point tracked out the right of the image
+            & (cur_pts[:, 1] >= 0) # new points tracked below the image
+            & (cur_pts[:, 1] < height) # new points tracked above the image
+            & (np.abs(cur_pts[:, 1] - prev_pts[:, 1]) < 15) # limit movement in y direction
+            & (np.abs(cur_pts[:, 0] - prev_pts[:, 0]) < 15) # limit movement in x direction
         )
+
 
         camera1.left_kp = camera1.left_kp[mask]
         camera1.left_kpoints2d = prev_pts[mask]
         camera1.left_desc2d = camera1.left_desc2d[mask]
+        camera1.kpoints3d = camera1.kpoints3d[mask]
+        camera1.desc3d = camera1.left_desc2d
 
         camera2.left_kpoints2d = cur_pts[mask]
-        camera2.left_kp = None
+        camera2.left_kp = pts2kp(cur_pts)
         camera2.left_desc2d = None
         return camera1, camera2
 

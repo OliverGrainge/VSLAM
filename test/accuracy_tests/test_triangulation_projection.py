@@ -29,7 +29,7 @@ def test_stereo_object():
 
 def test_triangulation():
     ds = get_dataset()
-    inputs = ds.load_frame(0)
+    inputs = ds.load_frame(1)
     params = ds.load_parameters()
     camera = StereoCamera(**inputs, **params)
     lf = LocalFeatures()
@@ -88,9 +88,11 @@ def test_translated_reprojection_error():
     camera = tracker.track(camera)
     pts3d = camera.triangulate()
     pts2d = camera.project(pts3d)
+    print("hellllllllo", pts3d.shape, pts2d.shape, camera.left_kpoints2d.shape)
     assert isinstance(pts2d, np.ndarray)
     assert pts2d.ndim == 2
     assert pts2d.shape[1] == 2
+    print(np.median(np.abs(pts2d - camera.left_kpoints2d)))
     assert np.median(np.abs(pts2d - camera.left_kpoints2d)) < 0.2
 
 
@@ -119,8 +121,5 @@ def test_translated_vs_static_reprojection_error():
     pts4d_rec = np.linalg.inv(params["x"]) @ pts4d_t.T
     pts3d_rec = pts4d_rec[:3, :] / pts4d_rec[3, :]
     pts3d_rec = pts3d_rec.T
-
-    print(pts3d_rec[:3])
-    print(pts3d[:3])
     assert not np.allclose(pts3d_t, pts3d)
     assert np.allclose(pts3d_rec, pts3d)

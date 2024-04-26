@@ -28,6 +28,7 @@ class StereoCamera(ABCCamera):
         self.pl = pl  # left projection matrix
         self.pr = pr  # right projection matrix
         self.dist = dist  # distortion parameters
+        self.baseline = self.compute_baseline()
 
         self.left_kp = []  # List of cv2 keypoints for left image
         self.right_kp = []  # List of cv2 keypoints for right image
@@ -43,6 +44,12 @@ class StereoCamera(ABCCamera):
         # self.left_desc2d[self.left_mask] = left_kpoint2d_desc
         self.orig_mask = None
         self.targ_mask = None
+    
+    def compute_baseline(self):
+        _,tl = cv2.decomposeProjectionMatrix(self.pl)[1:3]
+        _,tr = cv2.decomposeProjectionMatrix(self.pr)[1:3]
+        return np.linalg.norm(tl-tr)
+
 
     def project(self, points: np.ndarray):
         rvec, tvec = unhomogenize(self.x)
@@ -57,12 +64,36 @@ class StereoCamera(ABCCamera):
             self.pl, self.pr, self.left_kpoints2d.T, self.right_kpoints2d.T
         )
 
+        print("runing triangulate")
+
         if np.allclose(self.x, np.eye(4), atol=1e-6):
             points_3d = points_4d[:3] / points_4d[3]
+            depths = points_3d[2, :]
+            # filter out points triangulated far away
+            mask_depth = depths < 40 * self.baseline
+            mask_neg = depths > 0
+            mask = mask_depth & mask_neg  
             self.kpoints3d = points_3d.T
+            self.kpoints3d = self.kpoints3d[mask]
+            self.left_desc2d = self.left_desc2d[mask]
+            self.left_kp = self.left_kp[mask]
+            self.left_kpoints2d = self.left_kpoints2d[mask]
+            self.right_kpoints2d = self.right_kpoints2d[mask]
         else:
             # if camera is not at the origin tranlate the points
+            points_3d = points_4d[:3] / points_4d[3]
+            depths = points_3d[2, :]
             points_4d = self.x @ points_4d
             points_4d /= points_4d[3, :]
+            mask_depth = depths < 40 * self.baseline
+            mask_neg = depths > 0
+            mask = mask_depth & mask_neg 
             self.kpoints3d = points_4d[:3, :].T
+            self.left_desc2d = self.left_desc2d[mask]
+            self.kpoints3d = self.kpoints3d[mask]
+            self.right_desc2d = self.right_desc2d[mask]
+            self.left_kp = self.left_kp[mask]
+            self.right_kp = self.right_kp[mask]
+            self.left_kpoints2d = self.left_kpoints2d[mask]
+            self.right_kpoints2d = self.right_kpoints2d[mask]
         return self.kpoints3d
