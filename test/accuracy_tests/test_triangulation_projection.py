@@ -38,8 +38,8 @@ def test_triangulation():
     camera = tracker.track(camera)
     pts3d = camera.triangulate()
     assert isinstance(pts3d, np.ndarray)
-    assert pts3d.ndim == 2 
-    assert pts3d.shape[1] == 3 
+    assert pts3d.ndim == 2
+    assert pts3d.shape[1] == 3
     assert np.allclose(pts3d, camera.kpoints3d)
 
 
@@ -55,7 +55,7 @@ def test_projection():
     pts3d = camera.triangulate()
     pts2d = camera.project(pts3d)
     assert isinstance(pts2d, np.ndarray)
-    assert pts2d.ndim == 2 
+    assert pts2d.ndim == 2
     assert pts2d.shape[1] == 2
 
 
@@ -71,7 +71,7 @@ def test_reprojection_error():
     pts3d = camera.triangulate()
     pts2d = camera.project(pts3d)
     assert isinstance(pts2d, np.ndarray)
-    assert pts2d.ndim == 2 
+    assert pts2d.ndim == 2
     assert pts2d.shape[1] == 2
     assert np.median(np.abs(pts2d - camera.left_kpoints2d)) < 0.2
 
@@ -89,7 +89,7 @@ def test_translated_reprojection_error():
     pts3d = camera.triangulate()
     pts2d = camera.project(pts3d)
     assert isinstance(pts2d, np.ndarray)
-    assert pts2d.ndim == 2 
+    assert pts2d.ndim == 2
     assert pts2d.shape[1] == 2
     assert np.median(np.abs(pts2d - camera.left_kpoints2d)) < 0.2
 
@@ -113,15 +113,14 @@ def test_translated_vs_static_reprojection_error():
     camera = tracker.track(camera)
     pts3d_t = camera.triangulate()
 
-    pts4d_t = np.hstack((pts3d_t, np.ones(pts3d_t.shape[0]).reshape(pts3d_t.shape[0], 1)))
+    pts4d_t = np.hstack(
+        (pts3d_t, np.ones(pts3d_t.shape[0]).reshape(pts3d_t.shape[0], 1))
+    )
     pts4d_rec = np.linalg.inv(params["x"]) @ pts4d_t.T
     pts3d_rec = pts4d_rec[:3, :] / pts4d_rec[3, :]
     pts3d_rec = pts3d_rec.T
 
     print(pts3d_rec[:3])
     print(pts3d[:3])
-    assert not np.allclose(pts3d_t, pts3d) 
+    assert not np.allclose(pts3d_t, pts3d)
     assert np.allclose(pts3d_rec, pts3d)
-
-    
-

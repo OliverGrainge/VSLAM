@@ -12,7 +12,6 @@ from Datasets import Kitti
 from VSLAM.Camera import StereoCamera
 
 
-
 def get_dataset():
     root = os.path.join(os.getcwd(), "/test/data/")[1:]
     return Kitti(root=root)

@@ -38,9 +38,17 @@ class StereoCamera(ABCCamera):
         self.right_desc2d = None  # descriptors of 2d keypoints
         self.desc3d = None  # descriptions of 3d keypoints
 
+        # these masks are to provide mappings between kp and kpoints2d for instance
+        # self.left_kp[self.left_mask].pt = left_kpoints2d_kp
+        # self.left_desc2d[self.left_mask] = left_kpoint2d_desc
+        self.orig_mask = None
+        self.targ_mask = None
+
     def project(self, points: np.ndarray):
         rvec, tvec = unhomogenize(self.x)
-        projected_points, _ = cv2.projectPoints(points.T, rvec, tvec, self.kl, self.dist)
+        projected_points, _ = cv2.projectPoints(
+            points.T, rvec, tvec, self.kl, self.dist
+        )
         return projected_points.squeeze()
 
     def triangulate(self):
@@ -53,7 +61,7 @@ class StereoCamera(ABCCamera):
             points_3d = points_4d[:3] / points_4d[3]
             self.kpoints3d = points_3d.T
         else:
-            # if camera is not at the origin tranlate the points 
+            # if camera is not at the origin tranlate the points
             points_4d = self.x @ points_4d
             points_4d /= points_4d[3, :]
             self.kpoints3d = points_4d[:3, :].T

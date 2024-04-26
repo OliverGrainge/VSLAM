@@ -47,8 +47,9 @@ class MatcherTracker(ABCFeatureTracker):
 
         camera1.left_kp = np.array(new_kp_ref)
         camera1.left_kpoints2d = cv2.KeyPoint_convert(new_kp_ref)
-        camera1.right_kp = np.array(new_kp_cur)
         camera1.left_desc2d = new_desc_ref
+
+        camera1.right_kp = np.array(new_kp_cur)
         camera1.right_kpoints2d = cv2.KeyPoint_convert(new_kp_cur)
         camera1.right_desc2d = new_desc_cur
         return camera1
@@ -87,10 +88,11 @@ class MatcherTracker(ABCFeatureTracker):
             new_kp_ref.append(camera1.left_kp[match.trainIdx])
 
         camera1.left_kp = np.array(new_kp_ref)
-        camera2.left_kp = np.array(new_kp_cur)
-        camera1.left_kpoints2d = cv2.KeyPoint_convert(new_kp_ref)
-        camera2.left_kpoints2d = cv2.KeyPoint_convert(new_kp_cur)
         camera1.left_desc2d = new_desc_ref
+        camera1.left_kpoints2d = cv2.KeyPoint_convert(new_kp_ref)
+
+        camera2.left_kp = np.array(new_kp_cur)
+        camera2.left_kpoints2d = cv2.KeyPoint_convert(new_kp_cur)
         camera2.left_desc2d = new_desc_cur
         return camera1, camera2
 

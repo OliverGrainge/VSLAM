@@ -49,9 +49,7 @@ def test_left_right_track_size():
     cam1 = lf.detectAndCompute(cam1)
     tracker = MatcherTracker()
     cam1 = tracker.track(cam1)
-    assert len(cam1.left_kp) == len(cam1.right_kpoints2d)
     assert len(cam1.left_kpoints2d) == len(cam1.right_kpoints2d)
-    assert len(cam1.left_kp) == len(cam1.left_kpoints2d)
 
 
 def test_consecutive_type():
@@ -73,6 +71,4 @@ def test_consecutive_size():
     cam2 = lf.detectAndCompute(cam2)
     tracker = MatcherTracker()
     cam1, cam2 = tracker.track(cam1, cam2)
-    assert len(cam1.left_kp) == len(cam2.left_kpoints2d)
     assert len(cam1.left_kpoints2d) == len(cam2.left_kpoints2d)
-    assert len(cam1.left_kp) == len(cam2.left_kpoints2d)

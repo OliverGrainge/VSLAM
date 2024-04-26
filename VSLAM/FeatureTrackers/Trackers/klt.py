@@ -1,12 +1,10 @@
-from typing import List, Tuple
-
-import cv2
+from .base import ABCFeatureTracker
+from ...utils import get_config
 import numpy as np
-
+from typing import Tuple, List
 from VSLAM.Features.Local import Describers
 from VSLAM.utils import pts2kp
-
-from .base import ABCFeatureTracker
+import cv2
 
 
 class KLTTracker(ABCFeatureTracker):
@@ -24,7 +22,7 @@ class KLTTracker(ABCFeatureTracker):
             camera1.left_image, camera1.right_image, left_pts, None, **self.lk_params
         )
 
-        height, width = camera1.right_image.shape[:2]
+        height, width = camera1.left_image.shape[:2]
         mask = (
             (st.flatten() == 1)
             & (right_pts[:, 0] >= 0)
@@ -33,11 +31,14 @@ class KLTTracker(ABCFeatureTracker):
             & (right_pts[:, 1] < height)
         )
 
+
         camera1.left_kp = camera1.left_kp[mask]
-        camera1.left_kpoints2d = cv2.KeyPoint_convert(camera1.left_kp)
+        camera1.left_kpoints2d = left_pts[mask]
         camera1.left_desc2d = camera1.left_desc2d[mask]
 
         camera1.right_kpoints2d = right_pts[mask]
+        camera1.right_kp = None
+        camera1.right_desc2d = None
         return camera1
 
     def track_consecutive(self, camera1, camera2) -> Tuple:
@@ -60,6 +61,8 @@ class KLTTracker(ABCFeatureTracker):
         camera1.left_desc2d = camera1.left_desc2d[mask]
 
         camera2.left_kpoints2d = cur_pts[mask]
+        camera2.left_kp = None
+        camera2.left_desc2d = None
         return camera1, camera2
 
     def track(self, camera1, camera2=None) -> Tuple:
@@ -67,3 +70,4 @@ class KLTTracker(ABCFeatureTracker):
             return self.track_consecutive(camera1, camera2)
         else:
             return self.track_left_to_right(camera1)
+            
