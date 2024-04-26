@@ -22,7 +22,7 @@ def get_data_consecutive():
     root = os.path.join(os.getcwd(), "/test/data/")[1:]
     ds = Kitti(root=root)
     inputs1 = ds.load_frame(0)
-    inputs2 = ds.load_frame(2)
+    inputs2 = ds.load_frame(1)
     params = ds.load_parameters()
     cam1= StereoCamera(**inputs1, **params)
     cam2 = StereoCamera(**inputs2, **params)
@@ -32,7 +32,7 @@ def get_data_consecutive():
     cam2 = lf.detectAndCompute(cam2)
     cam1 = tracker.track(cam1)
     cam1.triangulate()
-    pos = ds.ground_truth()[2]
+    pos = ds.ground_truth()[1]
     return cam1, cam2, pos
 
 def test_instantiation():

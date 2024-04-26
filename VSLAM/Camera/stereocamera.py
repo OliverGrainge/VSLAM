@@ -79,6 +79,9 @@ class StereoCamera(ABCCamera):
             self.left_kp = self.left_kp[mask]
             self.left_kpoints2d = self.left_kpoints2d[mask]
             self.right_kpoints2d = self.right_kpoints2d[mask]
+            if self.right_desc2d is not None:
+                self.right_desc2d = self.right_desc2d[mask]
+
         else:
             # if camera is not at the origin tranlate the points
             points_3d = points_4d[:3] / points_4d[3]
@@ -91,9 +94,13 @@ class StereoCamera(ABCCamera):
             self.kpoints3d = points_4d[:3, :].T
             self.left_desc2d = self.left_desc2d[mask]
             self.kpoints3d = self.kpoints3d[mask]
-            self.right_desc2d = self.right_desc2d[mask]
             self.left_kp = self.left_kp[mask]
-            self.right_kp = self.right_kp[mask]
             self.left_kpoints2d = self.left_kpoints2d[mask]
             self.right_kpoints2d = self.right_kpoints2d[mask]
+
+            if self.right_desc2d is not None:
+                self.right_desc2d = self.right_desc2d[mask]
+            if self.right_kp is not None: 
+                self.right_kp = self.right_kp[mask]
+
         return self.kpoints3d

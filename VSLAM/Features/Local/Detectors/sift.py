@@ -12,4 +12,4 @@ class SIFT(ABCDetector):
 
     def detect(self, image: np.ndarray) -> List:
         keypoints = self.sift.detect(image, None)
-        return keypoints
+        return np.array(keypoints)

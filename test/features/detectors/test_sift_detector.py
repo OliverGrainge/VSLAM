@@ -44,4 +44,4 @@ def test_outputs_dtype():
     det = SIFT()
     camera = get_camera()
     kp = det.detect(camera.left_image)
-    assert isinstance(kp, Tuple)
+    assert isinstance(kp, np.ndarray)

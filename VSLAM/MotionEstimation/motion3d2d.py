@@ -18,10 +18,10 @@ class MotionEstimation3D2D:
             camera2.dist,
             reprojectionError=self.reprojErrorThreshold,
         )
-        """
+
         kpoints3d_inliers = camera1.kpoints3d[inliers.flatten()]
         left_points2d_inliers = camera1.left_kpoints2d[inliers.flatten()]
-        
+        """
         rvec, tvec = cv2.solvePnPRefineLM(
             kpoints3d_inliers, 
             left_points2d_inliers, 
@@ -31,6 +31,5 @@ class MotionEstimation3D2D:
             tvec
         )
         """
-
         T = np.linalg.inv(homogenize(rvec, tvec))
         return T
