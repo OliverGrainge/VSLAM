@@ -64,8 +64,6 @@ class StereoCamera(ABCCamera):
             self.pl, self.pr, self.left_kpoints2d.T, self.right_kpoints2d.T
         )
 
-        print("runing triangulate")
-
         if np.allclose(self.x, np.eye(4), atol=1e-6):
             points_3d = points_4d[:3] / points_4d[3]
             depths = points_3d[2, :]

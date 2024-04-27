@@ -16,6 +16,8 @@ def get_detector():
         return Detectors.SIFT()
     elif config["LocalFeatureDetector"] == "HARRIS":
         return Detectors.HARRIS()
+    elif config["LocalFeatureDetector"] == "SIFTBlocks": 
+        return Detectors.SIFTBlocks()
     else:
         raise NotImplementedError()
 

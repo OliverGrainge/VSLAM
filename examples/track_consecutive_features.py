@@ -75,9 +75,22 @@ print("Min Matched Distance:", min_dist)
 print("x axis variance: ", x_var)
 print("y axis variance", y_var)
 
-bins = np.linspace(min_dist, max_dist, 100)
+
+plt.figure()
+res = cam1.left_kpoints2d[:, 0] - cam2.left_kpoints2d[:, 0]
+bins = np.linspace(np.min(res), np.max(res), 100)
 plt.hist(res, bins=bins)
-plt.title("Distirbution of distance between matched points")
+plt.title("Distirbution of distance between matched points x direction")
+plt.xlabel("Distance (pixels)")
+plt.ylabel("P(distance)")
+
+
+
+plt.figure()
+res = cam1.left_kpoints2d[:, 1] - cam2.left_kpoints2d[:, 1]
+bins = np.linspace(np.min(res), np.max(res), 100)
+plt.hist(res, bins=bins)
+plt.title("Distirbution of distance between matched points y direction")
 plt.xlabel("Distance (pixels)")
 plt.ylabel("P(distance)")
 plt.show()

@@ -1,2 +1,2 @@
 from .harris import HARRIS
-from .sift import SIFT
+from .sift import SIFT, SIFTBlocks

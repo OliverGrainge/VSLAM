@@ -18,7 +18,7 @@ feature_extractor = LocalFeatures()
 feature_tracker = FeatureTracker()
 
 # collect the camera inputs
-inputs = ds.load_frame(1)
+inputs = ds.load_frame(5)
 params = ds.load_parameters()
 
 # create the stereo camera object 
@@ -68,14 +68,16 @@ print("Min Matched Distance:", min_dist)
 print("x axis variance: ", x_var)
 print("y axis variance", y_var)
 
+plt.figure()
 bins = np.linspace(min_dist, max_dist, 100)
+res = camera.left_kpoints2d[:, 0] - camera.right_kpoints2d[:, 0]
 plt.hist(res, bins=bins)
-plt.title("Distirbution of distance between matched points")
+plt.title("Distirbution of distance between matched points in x direction")
 plt.xlabel("Distance (pixels)")
 plt.ylabel("P(distance)")
-plt.show()
 
-res = np.abs(camera.left_kpoints2d[:, 1] - camera.right_kpoints2d[:, 1])
+plt.figure()
+res = camera.left_kpoints2d[:, 1] - camera.right_kpoints2d[:, 1]
 bins = np.linspace(min(res), max(res), 100)
 plt.hist(res, bins=bins)
 plt.title("Distirbution of distance between matched points in y direction")

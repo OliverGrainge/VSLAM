@@ -88,7 +88,6 @@ def test_translated_reprojection_error():
     camera = tracker.track(camera)
     pts3d = camera.triangulate()
     pts2d = camera.project(pts3d)
-    print("hellllllllo", pts3d.shape, pts2d.shape, camera.left_kpoints2d.shape)
     assert isinstance(pts2d, np.ndarray)
     assert pts2d.ndim == 2
     assert pts2d.shape[1] == 2

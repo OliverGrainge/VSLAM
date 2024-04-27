@@ -11,9 +11,10 @@ class MotionEstimation3D2D:
         self.reprojErrorThreshold = reprojErrorThreshold
 
     def __call__(self, camera1, camera2):
+        print("motion", camera1.kpoints3d.astype(np.float32).shape, camera2.left_kpoints2d.astype(np.float32).shape)
         success, rvec, tvec, inliers = cv2.solvePnPRansac(
-            camera1.kpoints3d,
-            camera2.left_kpoints2d,
+            camera1.kpoints3d.astype(np.float32),
+            camera2.left_kpoints2d.astype(np.float32),
             camera2.kl,
             camera2.dist,
             reprojectionError=self.reprojErrorThreshold,
