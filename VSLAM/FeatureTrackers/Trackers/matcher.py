@@ -7,10 +7,17 @@ from .base import ABCFeatureTracker
 
 
 class MatcherTracker(ABCFeatureTracker):
-    def __init__(self, lowe_ratio=0.75):
-        self.lowe_ratio = 0.75
+    def __init__(self, lowe_ratio=0.75, ransac_reproj_threshold=5.0):
+        self.lowe_ratio = lowe_ratio
+        self.ransac_reproj_threshold = ransac_reproj_threshold
         self.binary_matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
         self.dense_matcher = cv2.BFMatcher()
+
+    def apply_ransac(self, kp1, kp2, matches):
+        pts1 = np.float32([kp1[m.queryIdx].pt for m in matches])
+        pts2 = np.float32([kp2[m.trainIdx].pt for m in matches])
+        H, mask = cv2.findHomography(pts1, pts2, cv2.RANSAC, self.ransac_reproj_threshold)
+        return mask
 
     def track_left_to_right(self, camera1):
         if camera1.left_desc2d.dtype == np.float32:
@@ -22,11 +29,9 @@ class MatcherTracker(ABCFeatureTracker):
                 camera1.right_desc2d, camera1.left_desc2d, k=2
             )
         # use lowes ratio test
-        good_matches = []
-        for m, n in matches:
-            if m.distance < self.lowe_ratio * n.distance:
-                good_matches.append(m)
-        matches = good_matches
+        matches = [m for m, n in matches if m.distance < self.lowe_ratio * n.distance]
+        mask = self.apply_ransac(camera1.right_kp, camera1.left_kp, matches)
+        matches = [matches[i] for i in range(len(mask)) if mask[i]]
 
         new_kp_ref = []
         new_kp_cur = []
@@ -65,11 +70,9 @@ class MatcherTracker(ABCFeatureTracker):
                 camera2.left_desc2d, camera1.left_desc2d, k=2
             )
         # use lowes ratio test
-        good_matches = []
-        for m, n in matches:
-            if m.distance < self.lowe_ratio * n.distance:
-                good_matches.append(m)
-        matches = good_matches
+        matches = [m for m, n in matches if m.distance < self.lowe_ratio * n.distance]
+        mask = self.apply_ransac(camera2.left_kp, camera1.left_kp, matches)
+        matches = [matches[i] for i in range(len(mask)) if mask[i]]
 
         new_kp_ref = []
         new_kp_cur = []
