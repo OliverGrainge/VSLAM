@@ -79,7 +79,8 @@ class Kitti(ABCDataset):
         return parameters
 
     def ground_truth(self):
-        return self.poses
+        gt = [pt[:3, 3] for pt in self.poses]
+        return np.array(gt)
 
     def __len__(
         self,

@@ -14,43 +14,35 @@ import cv2
 config = get_config()
 
 ds = Kitti()
-feature_extractor = LocalFeatures()
-feature_tracker = FeatureTracker()
 
 # collect the camera inputs
-inputs = ds.load_frame(5)
+inputs = ds.load_frame(0)
 params = ds.load_parameters()
 
 # create the stereo camera object 
 camera = StereoCamera(**inputs, **params)
 
-# detect the features in the left and right images 
-camera = feature_extractor.detectAndCompute(camera)
-# track features in the left and right iamges 
-camera = feature_tracker.track(camera)
-
-
 matches = np.array([cv2.DMatch(_queryIdx=idx, 
            _trainIdx=idx, _imgIdx=0, _distance=0) for idx in range(len(camera.left_kpoints2d))])
 
-sample_idx = np.random.randint(0, len(matches), size=(20,))
+sample_idx = np.random.randint(0, len(matches), size=(7,))
+
+if __name__ == "__main__":
+    img_matches = cv2.drawMatches(
+        camera.left_image, 
+        camera.left_kp, 
+        camera.right_image, 
+        camera.right_kp, 
+        matches[sample_idx],
+        None,
+        flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,)
+
+    cv2.imshow('Matches', img_matches)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
-img_matches = cv2.drawMatches(
-    camera.left_image, 
-    camera.left_kp, 
-    camera.right_image, 
-    camera.right_kp, 
-    matches[sample_idx],
-    None, 
-    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
-
-cv2.imshow('Matches', img_matches)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
-
+"""
 # ===================== Tracking Stats ===========================
 res = np.linalg.norm(camera.left_kpoints2d - camera.right_kpoints2d, axis=1)
 
@@ -85,3 +77,4 @@ plt.xlabel("Distance (pixels)")
 plt.ylabel("P(distance)")
 plt.show()
 
+"""

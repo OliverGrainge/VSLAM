@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from VSLAM.FeatureTrackers.Trackers import KLTTracker, MatcherTracker
+from VSLAM.FeatureTrackers.Trackers import KLTTracker
 
 from ..utils import get_config
 
