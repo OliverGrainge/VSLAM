@@ -19,35 +19,28 @@ feature_tracker = FeatureTracker()
 
 # collect the camera inputs
 inputs1 = ds.load_frame(0)
-inputs2 = ds.load_frame(1)
+inputs2 = ds.load_frame(2)
 
 params = ds.load_parameters()
 # create the stereo camera object 
 cam1 = StereoCamera(**inputs1, **params)
 cam2 = StereoCamera(**inputs2, **params)
 
-# detect the features in the left and right images 
-cam1 = feature_extractor.detectAndCompute(cam1)
-cam2 = feature_extractor.detectAndCompute(cam2)
 # track features in the left and right iamges 
-cam1 = feature_tracker.track(cam1)
-cam1.triangulate()
-
-cam1, cam2 = feature_tracker.track(cam1, cam2)
-
+tracking_info = feature_tracker.track(cam1, cam2)
 
 matches = np.array([cv2.DMatch(_queryIdx=idx, 
-           _trainIdx=idx, _imgIdx=0, _distance=0) for idx in range(len(cam1.left_kpoints2d))])
+           _trainIdx=idx, _imgIdx=0, _distance=0) for idx in range(len(tracking_info["points2d_left_cur"]))])
 
-sample_idx = np.random.randint(0, len(matches), size=(20,))
+sample_idx = np.random.randint(0, len(matches), size=(8,))
 
 
 
 img_matches = cv2.drawMatches(
     cam1.left_image, 
-    cam1.left_kp, 
+    tracking_info["kp_left_prev"], 
     cam2.left_image, 
-    cam2.left_kp, 
+    tracking_info["kp_left_cur"], 
     matches[sample_idx],
     None, 
     flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
@@ -56,6 +49,7 @@ cv2.imshow('Matches', img_matches)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
+"""
 
 # ===================== Tracking Stats ===========================
 res = np.linalg.norm(cam1.left_kpoints2d - cam2.left_kpoints2d, axis=1)
@@ -96,3 +90,4 @@ plt.ylabel("P(distance)")
 plt.show()
 
 
+"""
