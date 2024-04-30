@@ -13,7 +13,6 @@ from Datasets import Kitti
 
 def test_load():
     root = os.path.join(os.getcwd(), "/test/data/")[1:]
-    print(root)
     ds = Kitti(root=root)
     assert ds is not None
 
@@ -44,22 +43,17 @@ def test_parameters_type():
 def test_poses_type():
     ds = get_dataset()
     gt = ds.ground_truth()
-    assert isinstance(gt, List)
+    assert isinstance(gt, np.ndarray)
     assert isinstance(gt[0], np.ndarray)
 
 
-def test_poses_type():
+def test_poses_type2():
     ds = get_dataset()
     gt = ds.ground_truth()
-    assert gt[0].shape[0] == 4
-    assert gt[0].shape[1] == 4
-    assert np.allclose(gt[0][3, :], np.array([0, 0, 0, 1]))
+    assert len(gt[0]) == 3
+    assert len(gt[0]) == 3
+    assert np.allclose(gt[0], np.array([0, 0, 0]))
 
-
-def test_poses_valid_transformation():
-    ds = get_dataset()
-    gt = ds.ground_truth()
-    assert np.linalg.inv(gt) is not None
 
 
 def test_images_present():

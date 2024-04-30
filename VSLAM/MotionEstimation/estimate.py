@@ -4,7 +4,7 @@ from ..utils import get_config
 
 def MotionEstimation(**kwargs):
     config = get_config()
-    if config["MotionEstimation"] == "3d2d":
+    if config["MotionEstimationMethod"].lower() == "3d2d":
         return MotionEstimation3D2D(**kwargs)
     else:
         raise NotImplementedError

@@ -1,10 +1,11 @@
 import cv2 
 import numpy as np 
-from ..utils import get_config, unhomogenize
+from ..utils import get_config
+from .base import ABCFeatureMatcher
 
 config = get_config()
 
-class FlannMatcher:
+class FlannMatcher(ABCFeatureMatcher):
     def __init__(self):
         self.matcher = cv2.FlannBasedMatcher(
             dict(algorithm=0, trees=5),
@@ -17,7 +18,6 @@ class FlannMatcher:
         camera = self.triangulate(camera)
         camera = self.filter_inliers3d(camera)
         return camera
-
 
     
     def get_matches(self, camera):
@@ -65,6 +65,7 @@ class FlannMatcher:
 
         camera.kpoints3d = (points4d[:3, :] / points4d[3, :]).T
         camera.desc3d = camera.left_desc2d
+
         return camera
 
     def filter_inliers3d(self, camera):
@@ -98,6 +99,7 @@ class FlannMatcher:
         camera.right_desc2d = camera.right_desc2d[mask]
         camera.left_kpoints2d = camera.left_kpoints2d[mask]
         camera.right_kpoints2d = camera.right_kpoints2d[mask]
+        camera.desc3d = camera.desc3d[mask]
 
 
 

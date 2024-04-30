@@ -7,7 +7,7 @@ from ..utils import unhomogenize
 from .base import ABCCamera
 from ..Features import LocalFeatures
 from ..utils import pts2kp
-from ..FeatureMatchers import FlannMatcher
+from ..FeatureMatchers import FeatureMatcher
 
 def project_points(points3D, projectionMatrix):
     """
@@ -39,14 +39,10 @@ class StereoCamera(ABCCamera):
         kr: np.ndarray,
         x: np.ndarray = np.eye(4),
         dist: np.ndarray = np.zeros(5),
-        lowe_ratio: float=0.8,
-        reproj_error_threshold: float=8.0
     ):
         
         self.feature_extractor = LocalFeatures()
-        self.feature_matcher = FlannMatcher()
-        self.lowe_ratio = lowe_ratio
-        self.reproj_error_threshold = reproj_error_threshold
+        self.feature_matcher = FeatureMatcher()
     
         self.left_image = left_image
         self.right_image = right_image
@@ -56,7 +52,7 @@ class StereoCamera(ABCCamera):
         self.kr = kr  # intrinsic parameters of right camera
         self.pl = pl  # left projection matrix
         self.pr = pr  # right projection matrix
-        self.dist = dist  # distortion parameters
+        self.dist = dist
 
         self.left_kp = []  # List of cv2 keypoints for left image
         self.right_kp = []  # List of cv2 keypoints for right image
@@ -69,12 +65,8 @@ class StereoCamera(ABCCamera):
 
         self.baseline_vector = self.baseline()
         self.feature_extractor.detectAndCompute(self)
-        self = self.feature_matcher.match(self)
-        #self.features_matcher.match(self)
-        #self.get_matches()
-        #self.filter_matching_inliers()
-        #reproj_error = self.triangulate()
-        #self.filter_triangulated_points(reproj_error)
+        self.feature_matcher.match(self)
+
 
 
     def baseline(self):
@@ -92,73 +84,4 @@ class StereoCamera(ABCCamera):
             points.T, rvec, tvec, self.kl, self.dist
         )
         return projected_points.squeeze()
-
-    def get_matches(self):
-        detector = cv2.SIFT_create(nfeatures=500)
-
-        keyPointsLeft, descriptorsLeft = detector.detectAndCompute(self.left_image, None)
-        keyPointsRight, descriptorsRight = detector.detectAndCompute(self.right_image, None)
-
-        matcher = cv2.FlannBasedMatcher(dict(algorithm=0, trees=5), dict(checks=50))
-
-        matches = matcher.knnMatch(descriptorsLeft, descriptorsRight, 2)
-
-        # apply ratio test
-        queryidxs = [m.queryIdx for m, n in matches if m.distance < 0.8 * n.distance]
-        trainidxs = [m.trainIdx for m, n in matches if m.distance < 0.8 * n.distance]
-
-        ptsLeft = np.array(cv2.KeyPoint_convert(keyPointsLeft))[queryidxs]
-        ptsRight = np.array(cv2.KeyPoint_convert(keyPointsRight))[trainidxs]
-
-        ptsLeft = np.array(ptsLeft).astype('float64')
-        ptsRight = np.array(ptsRight).astype('float64')
-
-        self.left_kp = pts2kp(ptsLeft)
-        self.right_kp = pts2kp(ptsRight)
-        self.left_desc2d = descriptorsLeft[queryidxs]
-        self.right_desc2d = descriptorsRight[trainidxs]
-        self.left_kpoints2d = np.array(ptsLeft).squeeze()
-        self.right_kpoints2d = np.array(ptsRight).squeeze()
-
-
-    def filter_matching_inliers(self,):
-        _, mask = cv2.findEssentialMat(self.left_kpoints2d,
-                                        self.right_kpoints2d,
-                                        self.kl,
-                                        method = 8,
-                                        prob = 0.9999,
-                                        threshold = 0.8)
-        mask = mask.ravel().astype(bool)
-        self.left_kp = self.left_kp[mask]
-        self.right_kp = self.right_kp[mask]
-        self.left_desc2d = self.left_desc2d[mask]
-        self.right_desc2d = self.right_desc2d[mask]
-        self.left_kpoints2d = self.left_kpoints2d[mask]
-        self.right_kpoints2d = self.right_kpoints2d[mask]
-        
-    def triangulate(self):
-        pts4D = cv2.triangulatePoints(self.pl, self.pr, self.left_kpoints2d.T, self.right_kpoints2d.T)
-        pts3D = pts4D[:3,:]/((pts4D[-1,:]).reshape(1,-1))
-        pts3D = pts3D.T
-        proj2D_left = project_points(pts3D, self.pl)
-        proj2D_right = project_points(pts3D, self.pr)
-        reprojError = ((np.sqrt(((proj2D_left-self.left_kpoints2d)**2).sum(axis=1))) + (np.sqrt(((proj2D_right-self.right_kpoints2d)**2).sum(axis=1))))/2
-        self.kpoints3d = np.array(pts3D)
-        return reprojError
-
-
-    def filter_triangulated_points(self, reprojError):
-        mask_x = np.logical_and((self.kpoints3d[:, 0] > - 12), (self.kpoints3d[:, 0] < 12))
-        mask_y = np.logical_and((self.kpoints3d[:, 1] < 2), (self.kpoints3d[:, 1] > -8))
-        mask_z = (self.kpoints3d[:, 2] > 2)
-        mask_reproj = reprojError < 0.5
-        
-        mask = np.logical_and(np.logical_and(mask_x, mask_y, mask_z), mask_reproj)
-        self.kpoints3d = self.kpoints3d[mask]
-        self.left_kp = self.left_kp[mask]
-        self.right_kp = self.right_kp[mask]
-        self.left_desc2d = self.left_desc2d[mask]
-        self.right_desc2d = self.right_desc2d[mask]
-        self.left_kpoints2d = self.left_kpoints2d[mask]
-        self.right_kpoints2d = self.right_kpoints2d[mask]
 

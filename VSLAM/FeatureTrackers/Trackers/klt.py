@@ -1,11 +1,7 @@
 from .base import ABCFeatureTracker
-from ...utils import get_config
 import numpy as np
-from typing import Tuple, List
-from VSLAM.Features.Local import Describers
-from VSLAM.utils import pts2kp
+from typing import Tuple
 import cv2
-from typing import Literal
 from ...utils import pts2kp, get_config
 
 config = get_config()

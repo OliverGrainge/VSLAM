@@ -1,1 +1,1 @@
-from .flannmatcher import FlannMatcher
+from .featurematcher import FeatureMatcher

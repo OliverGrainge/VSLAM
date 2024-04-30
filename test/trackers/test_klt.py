@@ -5,15 +5,11 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 )
 
-from typing import List, Tuple
 
 import numpy as np
-import pytest
-
 from Datasets import Kitti
 from VSLAM.Camera import StereoCamera
-from VSLAM.Features import LocalFeatures
-from VSLAM.FeatureTrackers.Trackers import KLTTracker
+from VSLAM.FeatureTrackers import FeatureTracker
 
 
 def get_cameras():
@@ -26,60 +22,53 @@ def get_cameras():
     camera2 = StereoCamera(**inputs2, **params)
     return camera1, camera2
 
-def get_cameras_consecutive():
-    root = os.path.join(os.getcwd(), "/test/data/")[1:]
-    ds = Kitti(root=root)
-    inputs1 = ds.load_frame(0)
-    inputs2 = ds.load_frame(1)
-    params = ds.load_parameters()
-    cam1= StereoCamera(**inputs1, **params)
-    cam2 = StereoCamera(**inputs2, **params)
-    tracker = KLTTracker()
-    lf = LocalFeatures()
-    cam1 = lf.detectAndCompute(cam1)
-    cam2 = lf.detectAndCompute(cam2)
-    cam1 = tracker.track(cam1)
-    cam1.triangulate()
-    return cam1, cam2
-
-
 
 def test_instantiation():
-    obj = KLTTracker()
-    assert obj is not None
+    tracker = FeatureTracker()
+    assert tracker is not None
 
-
-def test_left_right_track_type():
+def test_tracking_type():
     cam1, cam2 = get_cameras()
-    lf = LocalFeatures()
-    cam1 = lf.detectAndCompute(cam1)
-    tracker = KLTTracker()
-    cam1 = tracker.track(cam1)
-    assert isinstance(cam1.left_kp, np.ndarray)
-    assert isinstance(cam1.left_kpoints2d, np.ndarray)
-    assert isinstance(cam1.right_kpoints2d, np.ndarray)
+    tracker = FeatureTracker()
+    tracking_info = tracker.track(cam1, cam2)
+    assert isinstance(tracking_info, dict)
+    assert isinstance(tracking_info["kpoints3d_prev"], np.ndarray)
+    assert isinstance(tracking_info["kpoints2d_left_prev"], np.ndarray)
+    assert isinstance(tracking_info["kpoints2d_right_prev"], np.ndarray)
+    assert isinstance(tracking_info["kpoints2d_left_cur"], np.ndarray)
+    assert isinstance(tracking_info["kpoints2d_right_cur"], np.ndarray)
+    assert isinstance(tracking_info["kp_left_cur"], np.ndarray)
+    assert isinstance(tracking_info["kp_right_cur"], np.ndarray)
+    assert isinstance(tracking_info["kp_left_prev"], np.ndarray)
+    assert isinstance(tracking_info["kp_right_prev"], np.ndarray)
+    assert isinstance(tracking_info["kp_left_cur"], np.ndarray)
+    assert isinstance(tracking_info["kl"], np.ndarray)
+    assert isinstance(tracking_info["kr"], np.ndarray)
+    assert isinstance(tracking_info["dist"], np.ndarray)
+    assert isinstance(tracking_info["pl"], np.ndarray)
+    assert isinstance(tracking_info["pr"], np.ndarray)
 
 
-def test_left_right_track_size():
+
+def test_tracking_shape2():
     cam1, cam2 = get_cameras()
-    lf = LocalFeatures()
-    cam1 = lf.detectAndCompute(cam1)
-    tracker = KLTTracker()
-    cam1 = tracker.track(cam1)
-    assert len(cam1.left_kpoints2d) == len(cam1.right_kpoints2d)
+    tracker = FeatureTracker()
+    tracking_info = tracker.track(cam1, cam2)
+    n_points = len(tracking_info["kpoints3d_prev"])
+    assert n_points > 30
 
-
-def test_consecutive_type():
-    cam1, cam2 = get_cameras_consecutive()
-    tracker = KLTTracker()
-    cam1, cam2 = tracker.track(cam1, cam2)
-    assert isinstance(cam1.left_kp, np.ndarray)
-    assert isinstance(cam1.left_kpoints2d, np.ndarray)
-    assert isinstance(cam2.right_kpoints2d, np.ndarray)
-
-
-def test_consecutive_size():
-    cam1, cam2 = get_cameras_consecutive()
-    tracker = KLTTracker()
-    cam1, cam2 = tracker.track(cam1, cam2)
-    assert len(cam1.left_kpoints2d) == len(cam2.left_kpoints2d)
+    assert tracking_info["kpoints3d_prev"].shape[0] == n_points
+    assert tracking_info["kpoints2d_left_prev"].shape[0] == n_points
+    assert tracking_info["kpoints2d_right_prev"].shape[0] == n_points
+    assert tracking_info["kpoints2d_left_cur"].shape[0] == n_points
+    assert tracking_info["kpoints2d_right_cur"].shape[0] == n_points
+    assert tracking_info["kp_left_cur"].shape[0] == n_points
+    assert tracking_info["kp_right_cur"].shape[0] == n_points
+    assert tracking_info["kp_left_prev"].shape[0] == n_points
+    assert tracking_info["kp_right_prev"].shape[0] == n_points
+    assert tracking_info["kp_left_cur"].shape[0] == n_points
+    assert tracking_info["kl"].shape == (3, 3)
+    assert tracking_info["kr"].shape == (3, 3)
+    assert tracking_info["dist"].shape == (5,)
+    assert tracking_info["pl"].shape == (3, 4)
+    assert tracking_info["pr"].shape == (3, 4)

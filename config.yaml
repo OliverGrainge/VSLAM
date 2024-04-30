@@ -2,10 +2,10 @@
 
 
 DatasetsDirectory: "/Users/olivergrainge/Documents/github/Datasets"
-LocalFeatureDetector: "SIFT" # Either SIFT or HARRIS
-LocalFeatureDescriber: "SIFT"
+LocalFeatureDetector: "ShiTomasiSIFT" # Either SIFT or ShiTomasiSIFT
 LocalFeatureTracker: "KLT" # Only KLT available at the moment
-MotionEstimation: "3d2d" # Either 2d2d, 3d2d or 3d3d (Only 3d2d available at the moment)
+LocalFeatureMatcher: "FLANN" # Only FLANN available at the moment
+MotionEstimationMethod: "3d2d" # Either 2d2d, 3d2d or 3d3d (Only 3d2d available at the moment)
 
 Tracking: 
   InlierThreshold: 0.8
@@ -13,7 +13,7 @@ Tracking:
 
 
 Stereo: 
-  MaxFeatures: 250
+  MaxFeatures: 500
   InlierThreshold: 0.8
   Probability: 0.9999
   MaxReprojError: 0.5
@@ -22,5 +22,11 @@ Stereo:
   min_y: -8
   max_y: 2
   min_z: 2
+
+MotionEstimation:
+  iterationsCount: 2000 # Ransac iterations
+  reprojectionError: 1 # reprojection error threshold to be considered inlier
+  confidence: 0.9999 # confidence the model is accurate
+
 
 

@@ -9,8 +9,7 @@ from VSLAM.FeatureTrackers import FeatureTracker
 from VSLAM.utils import get_config
 from VSLAM.Camera import StereoCamera
 from VSLAM.MotionEstimation import MotionEstimation
-import matplotlib.pyplot as plt
-import cv2
+
 
 config = get_config()
 
@@ -29,10 +28,10 @@ params = ds.load_parameters()
 cam1 = StereoCamera(**inputs1, **params)
 cam2 = StereoCamera(**inputs2, **params)
 
-# track features in the left and right iamges 
+# track features in the left and right images
 tracking_info = feature_tracker.track(cam1, cam2)
 
 
-T = motion_estimation(tracking_info)
-print("Predicted:", T[:3, 3])
-print("Ground Truth", gt[2])
+rvec, tvec = motion_estimation(tracking_info)
+print("Predicted:", tvec.flatten())
+print("Ground Truth", gt[2].flatten())
