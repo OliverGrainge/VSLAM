@@ -28,5 +28,9 @@ MotionEstimation:
   reprojectionError: 1 # reprojection error threshold to be considered inlier
   confidence: 0.9999 # confidence the model is accurate
 
+Map:
+  WindowSize: 5
+  MaxPoint: 500
+
 
 

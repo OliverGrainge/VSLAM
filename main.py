@@ -9,6 +9,7 @@ gt_all = ds.ground_truth()
 slam = VisualSLAM(ds.load_parameters())
 
 fig, ax = plt.subplots()
+ax.set_title("VSLAM Tracking")
 
 line_traj, = ax.plot([], [], 'r-', label="Tracked")
 line_gt, = ax.plot([], [], 'g-', label="Ground Truth")
@@ -16,8 +17,8 @@ line_gt, = ax.plot([], [], 'g-', label="Ground Truth")
 ax.set_xlim(np.min(gt_all[:, 2]) - 10, np.max(gt_all[:, 2]) + 10)
 ax.set_ylim(np.min(gt_all[:, 0]) - 10, np.max(gt_all[:, 0])+10)
 
-ax.set_xlabel('X Position')
-ax.set_ylabel('Y Position')
+ax.set_xlabel('Z Position')
+ax.set_ylabel('X Position')
 ax.legend()
 
 def update(frame_idx):
@@ -27,10 +28,8 @@ def update(frame_idx):
     gt = ds.ground_truth()[:frame_idx+1]
     line_traj.set_data(traj[:, 2], traj[:, 0])
     line_gt.set_data(gt[:, 2], gt[:, 0])
-    ax.set_title(f"Frame {frame_idx}")
     return line_traj, line_gt
 
 
 ani = FuncAnimation(fig, update, frames=len(ds), blit=True, interval=100)
-
 plt.show()

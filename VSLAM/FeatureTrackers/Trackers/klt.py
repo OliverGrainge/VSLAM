@@ -24,13 +24,11 @@ class KLTTracker(ABCFeatureTracker):
                                                 method=8,
                                                 threshold=config["Tracking"]["InlierThreshold"],
                                                 prob=config["Tracking"]["Probability"])
-                                                    
-        
+
         mask_epipolar = mask_epipolar.ravel().astype(bool)
         return mask_epipolar
 
     def track(self, camera1, camera2) -> Tuple:
-                # Track features on left and right frame in the current state from previous states 
         _, pointsTrackedLeft, maskTrackingLeft = self.track_features(camera1.left_image,
                                                                      camera2.left_image,
                                                                      camera1.left_kpoints2d)
@@ -39,10 +37,7 @@ class KLTTracker(ABCFeatureTracker):
         _, pointsTrackedRight, maskTrackingRight = self.track_features(camera1.right_image,
                                                                        camera2.right_image,
                                                                        camera1.right_kpoints2d)
-        ########### Need to filter the feature tracks using RANSAC HERE ################
 
-        
-        # Joint index and select only good tracked points
         tracking_info = {}
         mask = np.logical_and(maskTrackingLeft.flatten(), maskTrackingRight.flatten()).astype(bool)
         tracking_info["kpoints3d_prev"] = camera1.kpoints3d[mask]
@@ -86,8 +81,6 @@ class KLTTracker(ABCFeatureTracker):
 
     def track_features(self, imageref, imagecur, ptsref):
         assert len(ptsref.shape) == 2 and ptsref.shape[1] == 2, "Input points are not in the correct shape."
-
-        # Reshape input and track features
         ptsref = ptsref.reshape(-1, 1, 2).astype('float32')
         points_t0_t1, mask_t0_t1, _ = cv2.calcOpticalFlowPyrLK(imageref,
                                                                imagecur,
@@ -99,7 +92,6 @@ class KLTTracker(ABCFeatureTracker):
             points_t0_t1 = points_t0_t1.reshape(-1, 2)
             h, w = imagecur.shape[:2]
 
-            # Check if points are within the image bounds
             within_bounds = (points_t0_t1[:, 0] >= 0) & (points_t0_t1[:, 0] < w) & \
                             (points_t0_t1[:, 1] >= 0) & (points_t0_t1[:, 1] < h)
             mask_t0_t1 = mask_t0_t1.flatten().astype(bool) & within_bounds
@@ -108,5 +100,4 @@ class KLTTracker(ABCFeatureTracker):
             mask_t0_t1 = np.zeros(ptsref.shape[0], dtype=bool)
 
         ptsref = ptsref.reshape(-1, 2)
-
         return ptsref, points_t0_t1, mask_t0_t1

@@ -18,7 +18,6 @@ class FlannMatcher(ABCFeatureMatcher):
         camera = self.triangulate(camera)
         camera = self.filter_inliers3d(camera)
         return camera
-
     
     def get_matches(self, camera):
         matches = self.matcher.knnMatch(
