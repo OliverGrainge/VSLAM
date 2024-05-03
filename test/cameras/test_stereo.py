@@ -24,6 +24,7 @@ def test_stereo_object():
     camera = StereoCamera(**inputs, **params)
     assert camera is not None
 
+
 def test_stereo_object_shape():
     ds = get_dataset()
     inputs = ds.load_frame(0)
@@ -37,4 +38,3 @@ def test_stereo_object_shape():
     assert camera.kpoints3d is not None
     assert len(camera.kpoints3d) == camera.left_kpoints2d.shape[0]
     assert camera.kpoints3d.shape[0] == camera.desc3d.shape[0]
-

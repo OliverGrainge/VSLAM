@@ -25,4 +25,3 @@ def test_stereo_object():
     params = ds.load_parameters()
     camera = StereoCamera(**inputs, **params)
     assert camera is not None
-

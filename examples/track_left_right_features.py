@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from Datasets import Kitti 
+from Datasets import Kitti
 from VSLAM.Features import LocalFeatures
 from VSLAM.FeatureTrackers import FeatureTracker
 from VSLAM.utils import get_config
@@ -19,25 +19,30 @@ ds = Kitti()
 inputs = ds.load_frame(0)
 params = ds.load_parameters()
 
-# create the stereo camera object 
+# create the stereo camera object
 camera = StereoCamera(**inputs, **params)
 
-matches = np.array([cv2.DMatch(_queryIdx=idx, 
-           _trainIdx=idx, _imgIdx=0, _distance=0) for idx in range(len(camera.left_kpoints2d))])
+matches = np.array(
+    [
+        cv2.DMatch(_queryIdx=idx, _trainIdx=idx, _imgIdx=0, _distance=0)
+        for idx in range(len(camera.left_kpoints2d))
+    ]
+)
 
 sample_idx = np.random.randint(0, len(matches), size=(7,))
 
 if __name__ == "__main__":
     img_matches = cv2.drawMatches(
-        camera.left_image, 
-        camera.left_kp, 
-        camera.right_image, 
-        camera.right_kp, 
+        camera.left_image,
+        camera.left_kp,
+        camera.right_image,
+        camera.right_kp,
         matches[sample_idx],
         None,
-        flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,)
+        flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
+    )
 
-    cv2.imshow('Matches', img_matches)
+    cv2.imshow("Matches", img_matches)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from Datasets import Kitti 
+from Datasets import Kitti
 from VSLAM.Features import LocalFeatures
 from VSLAM.FeatureTrackers import FeatureTracker
 from VSLAM.utils import get_config
@@ -24,7 +24,7 @@ inputs1 = ds.load_frame(0)
 inputs2 = ds.load_frame(2)
 
 params = ds.load_parameters()
-# create the stereo camera object 
+# create the stereo camera object
 cam1 = StereoCamera(**inputs1, **params)
 cam2 = StereoCamera(**inputs2, **params)
 

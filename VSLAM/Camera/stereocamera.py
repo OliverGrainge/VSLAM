@@ -22,10 +22,10 @@ class StereoCamera(ABCCamera):
         x: np.ndarray = np.eye(4),
         dist: np.ndarray = np.zeros(5),
     ):
-        
+
         self.feature_extractor = LocalFeatures()
         self.feature_matcher = FeatureMatcher()
-    
+
         self.left_image = left_image
         self.right_image = right_image
 
@@ -49,8 +49,6 @@ class StereoCamera(ABCCamera):
         self.feature_extractor.detectAndCompute(self)
         self.feature_matcher.match(self)
 
-
-
     def baseline(self):
         kl, rl, tl = cv2.decomposeProjectionMatrix(self.pl)[:3]
         kr, rr, tr = cv2.decomposeProjectionMatrix(self.pr)[:3]
@@ -59,11 +57,9 @@ class StereoCamera(ABCCamera):
         baseline_vector = camera_center_right - camera_center_left
         return baseline_vector
 
-
     def project(self, points: np.ndarray):
         rvec, tvec = unhomogenize(self.x)
         projected_points, _ = cv2.projectPoints(
             points.T, rvec, tvec, self.kl, self.dist
         )
         return projected_points.squeeze()
-

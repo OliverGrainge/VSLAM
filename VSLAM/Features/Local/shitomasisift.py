@@ -6,6 +6,7 @@ from .base import ABCLocalFeature
 
 config = get_config()
 
+
 class ShiTomasiSIFT(ABCLocalFeature):
     def __init__(self):
         # Create SIFT object for descriptor computation
@@ -19,10 +20,20 @@ class ShiTomasiSIFT(ABCLocalFeature):
         self.k = 0.04
 
     def detect(self, image: np.ndarray) -> np.ndarray:
-        corners = cv2.goodFeaturesToTrack(image, self.maxCorners, self.qualityLevel, self.minDistance,
-                                          blockSize=self.blockSize, useHarrisDetector=self.useHarrisDetector, k=self.k)
+        corners = cv2.goodFeaturesToTrack(
+            image,
+            self.maxCorners,
+            self.qualityLevel,
+            self.minDistance,
+            blockSize=self.blockSize,
+            useHarrisDetector=self.useHarrisDetector,
+            k=self.k,
+        )
         if corners is not None:
-            keypoints = [cv2.KeyPoint(x=float(pt[0][0]), y=float(pt[0][1]), size=10) for pt in corners]
+            keypoints = [
+                cv2.KeyPoint(x=float(pt[0][0]), y=float(pt[0][1]), size=10)
+                for pt in corners
+            ]
         else:
             keypoints = []
         return np.array(keypoints)
@@ -35,4 +46,3 @@ class ShiTomasiSIFT(ABCLocalFeature):
         keypoints = self.detect(image)
         desc = self.compute(image, keypoints)
         return keypoints, desc
-

@@ -55,7 +55,6 @@ def test_poses_type2():
     assert np.allclose(gt[0], np.array([0, 0, 0]))
 
 
-
 def test_images_present():
     ds = get_dataset()
     inputs = ds.load_frame(0)

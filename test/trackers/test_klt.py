@@ -27,6 +27,7 @@ def test_instantiation():
     tracker = FeatureTracker()
     assert tracker is not None
 
+
 def test_tracking_type():
     cam1, cam2 = get_cameras()
     tracker = FeatureTracker()
@@ -47,7 +48,6 @@ def test_tracking_type():
     assert isinstance(tracking_info["dist"], np.ndarray)
     assert isinstance(tracking_info["pl"], np.ndarray)
     assert isinstance(tracking_info["pr"], np.ndarray)
-
 
 
 def test_tracking_shape2():

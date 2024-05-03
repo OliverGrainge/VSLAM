@@ -16,8 +16,6 @@ from VSLAM.MotionEstimation.motion3d2d import MotionEstimation3D2D
 from VSLAM.FeatureTrackers import FeatureTracker
 
 
-
-
 def get_cameras():
     root = os.path.join(os.getcwd(), "/test/data/")[1:]
     ds = Kitti(root=root)
@@ -28,9 +26,11 @@ def get_cameras():
     camera2 = StereoCamera(**inputs2, **params)
     return camera1, camera2
 
+
 def test_instantiation():
     estimate = MotionEstimation3D2D()
     assert estimate is not None
+
 
 def test_estimation():
     cam1, cam2 = get_cameras()
@@ -38,10 +38,5 @@ def test_estimation():
     tracking = FeatureTracker()
     tracking_info = tracking.track(cam1, cam2)
     rmat, tvec = me(tracking_info)
-    assert rmat.shape == (3,3)
+    assert rmat.shape == (3, 3)
     assert tvec.shape == (3, 1)
-
-
-
-
-

@@ -20,9 +20,11 @@ def get_camera():
     camera = StereoCamera(**inputs, **params)
     return camera
 
+
 def test_instantiation():
     lf = LocalFeatures()
     assert lf is not None
+
 
 def test_detection():
     cam = get_camera()
@@ -33,6 +35,7 @@ def test_detection():
     assert len(cam.right_kp) > 10
     assert isinstance(cam.right_kp, np.ndarray)
 
+
 def test_desc():
     cam = get_camera()
     lf = LocalFeatures()
@@ -41,6 +44,7 @@ def test_desc():
     assert isinstance(cam.left_desc2d, np.ndarray)
     assert len(cam.left_desc2d) > 10
     assert isinstance(cam.left_desc2d, np.ndarray)
+
 
 def test_detectandcompute():
     cam = get_camera()
