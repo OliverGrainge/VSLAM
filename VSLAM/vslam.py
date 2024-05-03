@@ -6,6 +6,7 @@ from .Features import LocalFeatures
 from .MotionEstimation import MotionEstimation
 from .Camera import StereoCamera
 from .utils import homogenize
+from .Map import Map
 
 config = get_config()
 
@@ -16,22 +17,22 @@ class VisualSLAM:
         self.feature_extractor = LocalFeatures()
         self.feature_tracker = FeatureTracker()
         self.motion_estimation = MotionEstimation()
-        self.cameras = []
+        self.map = Map()
 
     def __call__(self, inputs: dict) -> None:
-        if len(self.cameras) == 0:
+        if len(self.map.cameras) == 0:
             cv2.namedWindow("previous")
             cv2.namedWindow("current")
             # create the stereo camera
             cam = StereoCamera(**inputs, **self.params)
             cam.rmat = np.eye(3)
             cam.tvec = np.zeros(3)
-            self.cameras.append(cam)
+            self.map(cam)
         else:
             # create the next camera
             cam = StereoCamera(**inputs, **self.params)
             # get the previous camera
-            cam_prev = self.cameras[-1]
+            cam_prev = self.map.cameras[-1]
             # track the features from the previous left camera image to the current left camera image
             tracking_info = self.feature_tracker.track(cam_prev, cam)
             # estimate the motion between the previous and current camera
@@ -65,10 +66,7 @@ class VisualSLAM:
             cam.tvec = cam_prev.rmat @ tvec + cam_prev.tvec.reshape(-1, 1)
             cam.tvec = cam.tvec.flatten()
             cam.x = homogenize(cv2.Rodrigues(cam.rmat)[0], cam.tvec)
-            self.cameras.append(cam)
+            self.map(cam)
 
     def trajectory(self):
-        traj = np.zeros((len(self.cameras), 3))
-        for idx, cam in enumerate(self.cameras):
-            traj[idx] = cam.tvec.flatten()
-        return traj
+        return self.map.global_traj()

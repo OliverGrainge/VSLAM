@@ -31,7 +31,7 @@ class MapMatcher:
             self.match_camera(idx,
                               points3d,
                               desc3d,
-                              self.cameras[-self.window:]) for idx in range(len(self.cameras[-self.window:])))
+                              self.cameras[-self.window:]) for idx in range(len(self.cameras[-self.window:]))
         return data_association
 
 
