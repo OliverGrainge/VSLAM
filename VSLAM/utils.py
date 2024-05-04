@@ -35,3 +35,10 @@ def pts2kp(pts: np.ndarray, size=1):
         ]
     )
     return kp
+
+
+def transform_points3d(points3d: np.ndarray, x: np.ndarray):
+    points_homogeneous = np.hstack((points3d, np.ones((points3d.shape[0], 1))))
+    points_world_homogeneous = np.dot(x, points_homogeneous.T).T
+    points_world = points_world_homogeneous[:, :3]
+    return points_world

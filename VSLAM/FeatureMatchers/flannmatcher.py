@@ -22,8 +22,16 @@ class FlannMatcher(ABCFeatureMatcher):
     def get_matches(self, camera):
         matches = self.matcher.knnMatch(camera.left_desc2d, camera.right_desc2d, 2)
 
-        queryidxs = [m.queryIdx for m, n in matches if m.distance < config["LoweRatio"] * n.distance]
-        trainidxs = [m.trainIdx for m, n in matches if m.distance < config["LoweRatio"] * n.distance]
+        queryidxs = [
+            m.queryIdx
+            for m, n in matches
+            if m.distance < config["LoweRatio"] * n.distance
+        ]
+        trainidxs = [
+            m.trainIdx
+            for m, n in matches
+            if m.distance < config["LoweRatio"] * n.distance
+        ]
 
         camera.left_kpoints2d = camera.left_kpoints2d[queryidxs]
         camera.right_kpoints2d = camera.right_kpoints2d[trainidxs]
