@@ -113,3 +113,6 @@ class MapMatcher:
 
         mask = mask.ravel().astype(bool)
         return mask
+
+    def filter_inliers3d(self, points3d, inliers3d, inliers2d, camera):
+        # filter by reprojection error
