@@ -29,11 +29,9 @@ def cameras2params(cameras: np.ndarray[StereoCamera], window_size: int):
         tvec = cam.x[:3, 3]
         params += rvec.flatten().tolist()
         params += tvec.flatten().tolist()
-    idxs = []
-    for idx, cam in enumerate(cameras[-window_size:]):
-        params += transform_points3d(cam.kpoints3d, cam.x).flatten().tolist()
-        idxs += np.full(len(cam.kpoints3d), idx).tolist()
-    return np.array(params), np.array(idxs)
+
+    params += transform_points3d(cameras[-1].kpoints3d, cameras[-1].x).flatten().tolist()
+    return np.array(params)
 
 
 def params2cameras(
@@ -41,7 +39,6 @@ def params2cameras(
     n_cameras: int,
     cameras: np.ndarray[StereoCamera],
     window_size: int,
-    points3d_idxs: np.ndarray,
 ):
 
     for idx in range(n_cameras):
@@ -51,17 +48,8 @@ def params2cameras(
         cameras[-window_size:][idx].rmat = cv2.Rodrigues(rvec)[0]
         cameras[-window_size:][idx].tvec = tvec
     points3d = params[n_cameras * 6 :].reshape(-1, 3)
-
-    i_old = 0
-    count = 0
-    while np.max(points3d_idxs) > 0:
-        i = np.where(points3d_idxs == 1)[0][0]
-        pts3d = points3d[i_old:i]
-        pts3d = transform_points3d(pts3d, np.linalg.inv(cameras[-window_size:][count].x))
-        cameras[-window_size:][count].kpoints3d = pts3d
-        i_old = i
-        count += 1
-        points3d_idxs -= 1
+    points3d = transform_points3d(points3d, np.linalg.inv(cameras[-1].x))
+    cameras[-1].kpoints3d = points3d
     return cameras
 
 
@@ -78,13 +66,12 @@ class Map:
 
     def bundle_adjustment(self):
         data_association = self.map_matcher.match(self.cameras, self.window)
-        params, points3d_idx = cameras2params(self.cameras, self.window)
+        params = cameras2params(self.cameras, self.window)
         self.cameras = params2cameras(
             params,
-            len(self.cameras[-self.window :]),
+            len(self.cameras[-self.window:]),
             self.cameras,
             self.window,
-            points3d_idx,
         )
 
     def local_map(self):

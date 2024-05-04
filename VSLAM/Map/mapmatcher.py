@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 from VSLAM.Camera.stereocamera import StereoCamera
 from typing import List
-from ..utils import get_config
+from ..utils import get_config, transform_points3d
 
 config = get_config()
 
@@ -22,20 +22,17 @@ class MapMatcher:
         :param camera:
         :return:
         """
-        points3d = np.vstack(
-            [self.transfom_points3d(cam.kpoints3d, cam.x) for cam in cameras]
+        points3d = transform_points3d(cameras[-1].kpoints3d, cameras[-1].x)
+        desc3d = cameras[-1].desc3d
+
+        data_association = np.vstack(
+            [
+                self.match_camera(idx, points3d, desc3d, cameras[-window:])
+                for idx in range(len(cameras[-window:]))
+            ]
         )
-        desc3d = np.vstack([cam.desc3d for cam in cameras])
-        if len(cameras[-window:]) >= window:
-            data_association = np.vstack(
-                [
-                    self.match_camera(idx, points3d, desc3d, cameras[-window:])
-                    for idx in range(len(cameras[-window:]))
-                ]
-            )
-            return data_association
-        else:
-            return None
+        return data_association
+
 
     def transfom_points3d(self, points3d: np.ndarray, T: np.ndarray):
         points_homogeneous = np.hstack((points3d, np.ones((points3d.shape[0], 1))))
@@ -57,7 +54,7 @@ class MapMatcher:
         """
         camera = cameras[camera_index]
 
-        matches = self.matcher.knnMatch(camera.left_desc2d, desc3d, k=2)
+        matches = self.matcher.knnMatch(desc3d, camera.left_desc2d, k=2)
         queryidxs = np.array(
             [
                 m.queryIdx
@@ -73,10 +70,10 @@ class MapMatcher:
             ]
         )
 
-        matched2d = camera.left_kpoints2d[queryidxs]
-        matched3d = points3d[trainidxs]
+        matched2d = camera.left_kpoints2d[trainidxs]
+        matched3d = points3d[queryidxs]
         obs2d = camera.project(matched3d)
-        mask = self.filter_inliers2d(matched2d, obs2d, camera.kl)
+        mask = self.filter_inliers2d(obs2d, matched2d, camera.kl)
         queryidxs = queryidxs[mask].reshape(-1, 1)
         trainidxs = trainidxs[mask].reshape(-1, 1)
         camera_indexs = np.full(len(trainidxs), camera_index).reshape(len(trainidxs), 1)
