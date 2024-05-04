@@ -11,7 +11,7 @@ from ..utils import homogenize, transform_points3d
 config = get_config()
 
 
-def reprojection_cost(params, data_association, cameras):
+def reprojection_cost(params, data_association, cameras, window_size):
     """
 
     :param params: a vector [rvec1, tvec1, rvec2, tv3c2, ..., x1, y1, z1, x2, y2, z2]
@@ -19,7 +19,28 @@ def reprojection_cost(params, data_association, cameras):
     :param cameras: the list of camera objects
     :return:
     """
-    pass
+    n_cameras = len(cameras[-window_size:])
+    all_pts3d = params[n_cameras*6:].reshape(-1, 3)
+    residuals = []
+    for idx in range(n_cameras):
+        rvec = params[idx * 6: idx *6 +3]
+        tvec = params[idx*6+3:idx*6+6]
+
+        da_idx = data_association[np.where(data_association[:, 1]==idx)]
+        pts3d = all_pts3d[da_idx[:, 0]]
+        obs2d = cameras[-window_size:][idx].left_kpoints2d[da_idx[:, 2]]
+
+        pts2d = cv2.projectPoints(
+                    pts3d,
+                    cv2.Rodrigues(cameras[-window_size:][idx].rmat)[0],#rvec,
+                    cameras[-window_size:][idx].tvec,#tvec,
+
+                    cameras[-window_size:][idx].kl,
+                    cameras[-window_size:][idx].dist)[0]
+        residuals += np.abs(pts2d.flatten() - obs2d.flatten()).tolist()
+    return np.array(residuals)
+
+
 
 
 def cameras2params(cameras: np.ndarray[StereoCamera], window_size: int):
@@ -58,15 +79,26 @@ class Map:
         self.cameras = []
         self.window = config["Map"]["WindowSize"]
         self.map_matcher = MapMatcher()
+        self.count = 0
 
     def __call__(self, camera: StereoCamera):
         self.cameras.append(camera)
+        self.count += 1
         if config["LocalOptimization"].lower() == "bundleadjustment":
-            self.bundle_adjustment()
+            if self.count > 6:
+                self.bundle_adjustment()
 
     def bundle_adjustment(self):
         data_association = self.map_matcher.match(self.cameras, self.window)
         params = cameras2params(self.cameras, self.window)
+        residuals = reprojection_cost(params, data_association, self.cameras, self.window)
+        #for idx, res in enumerate(residuals):
+        #    print("Residuals", idx, np.mean(residuals), np.min(residuals), np.max(residuals))
+        #import matplotlib.pyplot as plt
+        #bins = np.linspace(np.min(residuals), np.max(residuals), 100)
+        #plt.hist(residuals.flatten(), bins=bins)
+        ##plt.title(str(self.count))
+        #plt.show()
         self.cameras = params2cameras(
             params,
             len(self.cameras[-self.window:]),

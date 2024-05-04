@@ -12,16 +12,6 @@ class MapMatcher:
         self.matcher = cv2.BFMatcher()
 
     def match(self, cameras: List[StereoCamera], window: int):
-        """
-        This function takes in the 3d points and descriptors of the points. Matches those points
-        with the camera observations and returns a list of (i, k, j) where the ith 3d point is
-        matched to the jth observation in the kth camera.
-
-        :param points3D:
-        :param desc3d:
-        :param camera:
-        :return:
-        """
         points3d = transform_points3d(cameras[-1].kpoints3d, cameras[-1].x)
         desc3d = cameras[-1].desc3d
 
@@ -31,6 +21,36 @@ class MapMatcher:
                 for idx in range(len(cameras[-window:]))
             ]
         )
+        # ======================== DEBUGGING ===============================
+        """
+        idx = 0
+        assoc = data_association[np.where(data_association[:, 1] == idx)]
+        pts2d = cameras[-1].left_kp[assoc[:, 0]]
+        matchd2d = cameras[-window:][idx].left_kp[assoc[:, 2]]
+
+        matches = np.array(
+            [
+                cv2.DMatch(_queryIdx=idx, _trainIdx=idx, _imgIdx=0, _distance=0)
+                for idx in range(len(pts2d))
+            ]
+        )
+        sample_matches = np.random.randint(0, len(pts2d), size=(8,))
+        matches = matches[sample_matches]
+
+        stereo_matches = cv2.drawMatches(
+            cameras[-1].left_image,
+            pts2d,
+            cameras[-window:][idx].left_image,
+            matchd2d,
+            matches,
+            None,
+            flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
+        )
+        cv2.imshow("Matches", stereo_matches)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        print("hi")
+        """
         return data_association
 
 
@@ -55,6 +75,7 @@ class MapMatcher:
         camera = cameras[camera_index]
 
         matches = self.matcher.knnMatch(desc3d, camera.left_desc2d, k=2)
+
         queryidxs = np.array(
             [
                 m.queryIdx
@@ -62,6 +83,7 @@ class MapMatcher:
                 if m.distance < config["LoweRatio"] * n.distance or m.distance == 0.0
             ]
         )
+
         trainidxs = np.array(
             [
                 m.trainIdx
@@ -77,7 +99,7 @@ class MapMatcher:
         queryidxs = queryidxs[mask].reshape(-1, 1)
         trainidxs = trainidxs[mask].reshape(-1, 1)
         camera_indexs = np.full(len(trainidxs), camera_index).reshape(len(trainidxs), 1)
-        return np.hstack((trainidxs, camera_indexs, queryidxs))
+        return np.hstack((queryidxs, camera_indexs, trainidxs))
 
     def filter_inliers2d(self, pts1, pts2, k):
         _, mask = cv2.findEssentialMat(

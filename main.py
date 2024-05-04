@@ -31,6 +31,9 @@ def update(frame_idx):
     line_gt.set_data(gt[:, 2], gt[:, 0])
     return line_traj, line_gt
 
+for frame_idx in range(len(ds)):
+    inputs = ds.load_frame(frame_idx)
+    slam(inputs)
 
-ani = FuncAnimation(fig, update, frames=len(ds), blit=True, interval=100)
-plt.show()
+#ani = FuncAnimation(fig, update, frames=len(ds), blit=True, interval=100)
+#plt.show()
