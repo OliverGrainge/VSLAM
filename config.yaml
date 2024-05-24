@@ -14,7 +14,7 @@ Tracking:
 
 
 Stereo: 
-  MaxFeatures: 500
+  MaxFeatures: 2000
   InlierThreshold: 0.8
   Probability: 0.9999
   MaxReprojError: 0.5
@@ -30,10 +30,11 @@ MotionEstimation:
   confidence: 0.9999 # confidence the model is accurate
 
 Map:
-  WindowSize: 5
+  WindowSize: 3
   MaxPoint: 500
   BundleAdjustment:
-    InlierThreshold: 0.8
+    InlierThreshold2d: 0.8
+    InlierThreshold3d: 75
     Probability: 0.9999
 
 

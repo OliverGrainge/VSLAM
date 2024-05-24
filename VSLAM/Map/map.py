@@ -6,19 +6,13 @@ from ..utils import get_config
 from .mapmatcher import MapMatcher
 import cv2
 from ..utils import homogenize, transform_points3d
+from scipy.optimize import least_squares
 
 
 config = get_config()
 
 
 def reprojection_cost(params, data_association, cameras, window_size):
-    """
-
-    :param params: a vector [rvec1, tvec1, rvec2, tv3c2, ..., x1, y1, z1, x2, y2, z2]
-    :param data_association: an array of [i, k, j] the ith 3d point is matched with the jth observation of the kth camera
-    :param cameras: the list of camera objects
-    :return:
-    """
     n_cameras = len(cameras[-window_size:])
     all_pts3d = params[n_cameras*6:].reshape(-1, 3)
     residuals = []
@@ -39,7 +33,6 @@ def reprojection_cost(params, data_association, cameras, window_size):
                     cameras[-window_size:][idx].dist)[0]
         residuals += np.abs(pts2d.flatten() - obs2d.flatten()).tolist()
     return np.array(residuals)
-
 
 
 
@@ -84,21 +77,28 @@ class Map:
     def __call__(self, camera: StereoCamera):
         self.cameras.append(camera)
         self.count += 1
-        if config["LocalOptimization"].lower() == "bundleadjustment":
-            if self.count > 6:
-                self.bundle_adjustment()
 
     def bundle_adjustment(self):
         data_association = self.map_matcher.match(self.cameras, self.window)
         params = cameras2params(self.cameras, self.window)
         residuals = reprojection_cost(params, data_association, self.cameras, self.window)
-        #for idx, res in enumerate(residuals):
-        #    print("Residuals", idx, np.mean(residuals), np.min(residuals), np.max(residuals))
-        #import matplotlib.pyplot as plt
-        #bins = np.linspace(np.min(residuals), np.max(residuals), 100)
-        #plt.hist(residuals.flatten(), bins=bins)
-        ##plt.title(str(self.count))
-        #plt.show()
+        print(np.mean(residuals))
+        result = least_squares(
+            reprojection_cost,
+            params,
+            args=(
+                data_association,
+                self.cameras,
+                self.window
+            ),
+            method='lm'
+        )
+        print("finish optimize")
+        import matplotlib.pyplot as plt
+        bins = np.linspace(np.min(residuals), np.max(residuals), 100)
+        plt.hist(residuals.flatten(), bins=bins)
+        plt.title(str(self.count))
+        plt.show()
         self.cameras = params2cameras(
             params,
             len(self.cameras[-self.window:]),

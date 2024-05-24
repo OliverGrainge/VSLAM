@@ -37,7 +37,7 @@ class VisualSLAM:
             tracking_info = self.feature_tracker.track(cam_prev, cam)
             # estimate the motion between the previous and current camera
             rmat, tvec = self.motion_estimation(tracking_info)
-            """
+            
             matches = np.array(
                 [
                     cv2.DMatch(_queryIdx=idx, _trainIdx=idx, _imgIdx=0, _distance=0)
@@ -59,7 +59,7 @@ class VisualSLAM:
             )
 
             cv2.imshow("Stereo Matches", stereo_matches)
-            """
+            
             # update the position of the new camera
             cam = StereoCamera(**inputs, **self.params)
             cam.rmat = cam_prev.rmat @ rmat

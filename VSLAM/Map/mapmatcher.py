@@ -96,6 +96,9 @@ class MapMatcher:
         matched3d = points3d[queryidxs]
         obs2d = camera.project(matched3d)
         mask = self.filter_inliers2d(obs2d, matched2d, camera.kl)
+        queryidxs = queryidxs[mask]
+        trainidxs = trainidxs[mask]
+        mask = self.filter_inliers3d(matched3d, queryidxs, trainidxs, camera)
         queryidxs = queryidxs[mask].reshape(-1, 1)
         trainidxs = trainidxs[mask].reshape(-1, 1)
         camera_indexs = np.full(len(trainidxs), camera_index).reshape(len(trainidxs), 1)
@@ -108,11 +111,28 @@ class MapMatcher:
             k,
             method=8,
             prob=config["Map"]["BundleAdjustment"]["Probability"],
-            threshold=config["Map"]["BundleAdjustment"]["InlierThreshold"],
+            threshold=config["Map"]["BundleAdjustment"]["InlierThreshold2d"],
         )
-
         mask = mask.ravel().astype(bool)
         return mask
 
+
     def filter_inliers3d(self, points3d, inliers3d, inliers2d, camera):
-        # filter by reprojection error
+        pts3d = points3d[inliers3d]
+        pts2d = camera.left_kpoints2d[inliers2d]
+        obs2d = cv2.projectPoints(
+            pts3d,
+            cv2.Rodrigues(camera.rmat)[0],
+            camera.tvec,
+            camera.kl,
+            camera.dist[0])[0].squeeze()
+        res = np.linalg.norm(pts2d-obs2d, axis=1)
+
+        #import matplotlib.pyplot as plt
+        #bins = np.linspace(np.min(res), np.max(res), 10)
+        #plt.hist(res, bins)
+        #plt.show()
+
+        mask = res < config["Map"]["BundleAdjustment"]["InlierThreshold3d"]
+        return mask
+
