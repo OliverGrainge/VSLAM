@@ -40,7 +40,7 @@ def load_calib(pth: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray
 
 
 class Kitti(ABCDataset):
-    def __init__(self, sequence="00", root=config["DatasetsDirectory"]):
+    def __init__(self, sequence="03", root=config["DatasetsDirectory"]):
         self.data_dir = root
         self.sequence_dir = join(
             self.data_dir, "kitti/data_odometry_gray/dataset/sequences/"

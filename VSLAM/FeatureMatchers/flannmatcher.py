@@ -19,8 +19,8 @@ class FlannMatcher(ABCFeatureMatcher):
         camera = self.filter_inliers3d(camera)
         return camera
 
-    def get_matches(self, camera):
-        matches = self.matcher.knnMatch(camera.left_desc2d, camera.right_desc2d, 2)
+    def get_matches(self, camera1):
+        matches = self.matcher.knnMatch(camera1.left_desc2d, camera1.right_desc2d, 2)
 
         queryidxs = [
             m.queryIdx
@@ -33,14 +33,15 @@ class FlannMatcher(ABCFeatureMatcher):
             if m.distance < config["LoweRatio"] * n.distance
         ]
 
-        camera.left_kpoints2d = camera.left_kpoints2d[queryidxs]
-        camera.right_kpoints2d = camera.right_kpoints2d[trainidxs]
+        camera1.left_kpoints2d = camera1.left_kpoints2d[queryidxs]
+        camera1.right_kpoints2d = camera1.right_kpoints2d[trainidxs]
 
-        camera.left_kp = camera.left_kp[queryidxs]
-        camera.right_kp = camera.right_kp[trainidxs]
-        camera.left_desc2d = camera.left_desc2d[queryidxs]
-        camera.right_desc2d = camera.right_desc2d[trainidxs]
-        return camera
+        camera1.left_kp = camera1.left_kp[queryidxs]
+        camera1.right_kp = camera1.right_kp[trainidxs]
+        camera1.left_desc2d = camera1.left_desc2d[queryidxs]
+        camera1.right_desc2d = camera1.right_desc2d[trainidxs]
+        return camera1
+
 
     def filter_inliers2d(self, camera):
         _, mask = cv2.findEssentialMat(
@@ -60,6 +61,7 @@ class FlannMatcher(ABCFeatureMatcher):
         camera.left_kpoints2d = camera.left_kpoints2d[mask]
         camera.right_kpoints2d = camera.right_kpoints2d[mask]
         return camera
+
 
     def triangulate(self, camera):
         points4d = cv2.triangulatePoints(

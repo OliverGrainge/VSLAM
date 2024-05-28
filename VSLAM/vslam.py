@@ -27,7 +27,7 @@ class VisualSLAM:
             cam = StereoCamera(**inputs, **self.params)
             cam.rmat = np.eye(3)
             cam.tvec = np.zeros(3)
-            self.map(cam)
+            self.map(cam, None)
         else:
             # create the next camera
             cam = StereoCamera(**inputs, **self.params)
@@ -66,7 +66,7 @@ class VisualSLAM:
             cam.tvec = cam_prev.rmat @ tvec + cam_prev.tvec.reshape(-1, 1)
             cam.tvec = cam.tvec.flatten()
             cam.x = homogenize(cv2.Rodrigues(cam.rmat)[0], cam.tvec)
-            self.map(cam)
+            self.map(cam, tracking_info)
 
     def trajectory(self):
         return self.map.global_traj()

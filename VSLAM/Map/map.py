@@ -5,91 +5,89 @@ import numpy as np
 from ..utils import get_config
 from .mapmatcher import MapMatcher
 import cv2
-from ..utils import homogenize, transform_points3d
+from ..utils import homogenize, transform_points3d, pts2kp
 from scipy.optimize import least_squares
-
+from ..Backend import data_assocation, reprojection_error
 
 config = get_config()
 
 
-def reprojection_cost(params, data_association, cameras, window_size):
-    n_cameras = len(cameras[-window_size:])
-    all_pts3d = params[n_cameras*6:].reshape(-1, 3)
-    residuals = []
-    for idx in range(n_cameras):
-        rvec = params[idx * 6: idx *6 +3]
-        tvec = params[idx*6+3:idx*6+6]
-
-        da_idx = data_association[np.where(data_association[:, 1]==idx)]
-        pts3d = all_pts3d[da_idx[:, 0]]
-        obs2d = cameras[-window_size:][idx].left_kpoints2d[da_idx[:, 2]]
-
-        pts2d = cv2.projectPoints(
-                    pts3d,
-                    cv2.Rodrigues(cameras[-window_size:][idx].rmat)[0],#rvec,
-                    cameras[-window_size:][idx].tvec,#tvec,
-
-                    cameras[-window_size:][idx].kl,
-                    cameras[-window_size:][idx].dist)[0]
-        residuals += np.abs(pts2d.flatten() - obs2d.flatten()).tolist()
-    return np.array(residuals)
-
-
-
-def cameras2params(cameras: np.ndarray[StereoCamera], window_size: int):
-    params = []
-    for cam in cameras[-window_size:]:
-        rvec = cv2.Rodrigues(cam.rmat)[0].flatten()
-        tvec = cam.x[:3, 3]
-        params += rvec.flatten().tolist()
-        params += tvec.flatten().tolist()
-
-    params += transform_points3d(cameras[-1].kpoints3d, cameras[-1].x).flatten().tolist()
-    return np.array(params)
-
-
-def params2cameras(
-    params: np.ndarray,
-    n_cameras: int,
-    cameras: np.ndarray[StereoCamera],
-    window_size: int,
-):
-
-    for idx in range(n_cameras):
-        rvec = params[idx * 6 : idx * 6 + 3]
-        tvec = params[idx * 6 + 3 : idx * 6 + 6]
-        cameras[-window_size:][idx].x = homogenize(rvec, tvec)
-        cameras[-window_size:][idx].rmat = cv2.Rodrigues(rvec)[0]
-        cameras[-window_size:][idx].tvec = tvec
-    points3d = params[n_cameras * 6 :].reshape(-1, 3)
-    points3d = transform_points3d(points3d, np.linalg.inv(cameras[-1].x))
-    cameras[-1].kpoints3d = points3d
-    return cameras
-
-class BundleAdjustment: 
-    def __init__(self, 
-                 cameras: List,
-                 window: int=2):
-        self.cameras = cameras 
-        self.window = window 
-
-    def optimize(self):
-        print("optimizing")
-
-
 class Map:
     def __init__(self):
+        super().__init__()
         self.cameras = []
         self.window = config["Map"]["WindowSize"]
-        self.map_matcher = MapMatcher()
-        self.backend = BundleAdjustment(self.cameras, self.window)
         self.count = 0
 
-    def __call__(self, camera: StereoCamera):
+    def __call__(self, camera: StereoCamera, tracking_info):
         self.cameras.append(camera)
-        self.backend.optimize()
-        self.count += 1
+        query_cam = self.cameras[-1]
+        
+        if len(self.cameras) >= self.window: 
+            da = data_assocation(self.cameras, self.window)
 
+            
+            pts3d = query_cam.kpoints3d
+            obs = query_cam.left_kpoints2d
+            res_self, _ = reprojection_error(pts3d, np.zeros(3), np.zeros(3), np.zeros(5), query_cam.kl, obs)
+            
+            
+
+            for assoc, cam in zip(da, self.cameras[-self.window:-1]):
+                pts3d = transform_points3d(query_cam.kpoints3d[assoc[0]], query_cam.x)
+                obs = cam.left_kpoints2d[assoc[1]]
+                x = cam.x 
+                x = np.linalg.inv(x)
+                rvec = cv2.Rodrigues(x[:3, :3])[0]
+                tvec = x[:3, 3]
+                res, pp = reprojection_error(pts3d, rvec, tvec, np.zeros(5), cam.kl, obs)
+                print(np.mean(res_self), np.mean(res))
+                """
+                matches = np.array(
+                    [
+                        cv2.DMatch(_queryIdx=assoc[0][idx], _trainIdx=assoc[1][idx], _imgIdx=0, _distance=0)
+                        for idx in range(len(assoc[0]))
+                    ]
+                )
+                sample_matches = np.random.randint(0, len(assoc[0]), size=(8,))
+                matches = matches[sample_matches]
+                stereo_matches = cv2.drawMatches(
+                    query_cam.left_image,
+                    query_cam.left_kp,
+                    cam.left_image,
+                    cam.left_kp,
+                    matches,
+                    None,
+                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
+                )
+                matches = np.array(
+                    [
+                        cv2.DMatch(_queryIdx=assoc[0][idx], _trainIdx=idx, _imgIdx=0, _distance=0)
+                        for idx in range(len(assoc[0]))
+                    ]
+                )
+                matches = matches[sample_matches]
+                stereo_matches2 = cv2.drawMatches(
+                    query_cam.left_image,
+                    query_cam.left_kp,
+                    cam.left_image,
+                    pts2kp(pp),
+                    matches,
+                    None,
+                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
+                )
+                print(np.mean(res))
+                print("hi")
+                import matplotlib.pyplot as plt 
+                plt.hist(res, bins=np.linspace(res.min(), res.max(), 100))
+                plt.show()
+                cv2.imshow("Map Matches", stereo_matches)
+                cv2.imshow("Map Reprojections", stereo_matches2)
+                cv2.waitKey(0)
+                """
+
+
+        self.count += 1
 
     def local_map(self):
         return np.vstack([pt.kpoints3d for pt in self.cameras[-self.window :]])

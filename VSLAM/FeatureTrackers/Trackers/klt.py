@@ -53,7 +53,6 @@ class KLTTracker(ABCFeatureTracker):
         tracking_info["kp_right_cur"] = pts2kp(pointsTrackedRight[mask])
         tracking_info["kp_left_prev"] = camera1.left_kp[mask]
         tracking_info["kp_right_prev"] = camera1.right_kp[mask]
-
         mask_left = self.filter_matching_inliers(
             tracking_info["kpoints2d_left_prev"],
             tracking_info["kpoints2d_left_cur"],
