@@ -66,45 +66,30 @@ def params2cameras(
     cameras[-1].kpoints3d = points3d
     return cameras
 
+class BundleAdjustment: 
+    def __init__(self, 
+                 cameras: List,
+                 window: int=2):
+        self.cameras = cameras 
+        self.window = window 
+
+    def optimize(self):
+        print("optimizing")
+
 
 class Map:
     def __init__(self):
         self.cameras = []
         self.window = config["Map"]["WindowSize"]
         self.map_matcher = MapMatcher()
+        self.backend = BundleAdjustment(self.cameras, self.window)
         self.count = 0
 
     def __call__(self, camera: StereoCamera):
         self.cameras.append(camera)
+        self.backend.optimize()
         self.count += 1
 
-    def bundle_adjustment(self):
-        data_association = self.map_matcher.match(self.cameras, self.window)
-        params = cameras2params(self.cameras, self.window)
-        residuals = reprojection_cost(params, data_association, self.cameras, self.window)
-        print(np.mean(residuals))
-        result = least_squares(
-            reprojection_cost,
-            params,
-            args=(
-                data_association,
-                self.cameras,
-                self.window
-            ),
-            method='lm'
-        )
-        print("finish optimize")
-        import matplotlib.pyplot as plt
-        bins = np.linspace(np.min(residuals), np.max(residuals), 100)
-        plt.hist(residuals.flatten(), bins=bins)
-        plt.title(str(self.count))
-        plt.show()
-        self.cameras = params2cameras(
-            params,
-            len(self.cameras[-self.window:]),
-            self.cameras,
-            self.window,
-        )
 
     def local_map(self):
         return np.vstack([pt.kpoints3d for pt in self.cameras[-self.window :]])
