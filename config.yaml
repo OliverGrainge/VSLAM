@@ -30,7 +30,7 @@ MotionEstimation:
   confidence: 0.9999 # confidence the model is accurate
 
 Map:
-  WindowSize: 2
+  WindowSize: 4
   MaxPoint: 500
   BundleAdjustment:
     InlierThreshold2d: 0.8

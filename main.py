@@ -8,7 +8,6 @@ ds = Kitti()
 gt_all = ds.ground_truth()
 slam = VisualSLAM(ds.load_parameters())
 
-"""
 fig, ax = plt.subplots()
 ax.set_title("VSLAM Tracking")
 
@@ -32,11 +31,11 @@ def update(frame_idx):
     line_traj.set_data(traj[:, 2], traj[:, 0])
     line_gt.set_data(gt[:, 2], gt[:, 0])
     return line_traj, line_gt
-"""
 
-for i in range(100):
-    inputs = ds.load_frame(i)
-    slam(inputs)
 
-#ani = FuncAnimation(fig, update, frames=len(ds), blit=True, interval=100)
-#plt.show()
+#for i in range(100):
+#    inputs = ds.load_frame(i)
+#    slam(inputs)
+
+ani = FuncAnimation(fig, update, frames=len(ds), blit=True, interval=100)
+plt.show()
