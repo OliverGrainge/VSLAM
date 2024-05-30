@@ -6,7 +6,7 @@ LocalFeatureDetector: "ShiTomasiSIFT" # Either SIFT or ShiTomasiSIFT
 LocalFeatureTracker: "KLT" # Only KLT available at the moment
 LocalFeatureMatcher: "FLANN" # Only FLANN available at the moment
 MotionEstimationMethod: "3d2d" # Either 2d2d, 3d2d or 3d3d (Only 3d2d available at the moment)
-LocalOptimization: "BundleAdjustment"
+LocalOptimization: "None" #"BundleAdjustment"
 LoweRatio: 100
 Tracking: 
   InlierThreshold: 0.8
